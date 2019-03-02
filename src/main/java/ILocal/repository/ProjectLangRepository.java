@@ -8,6 +8,6 @@ import java.util.List;
 
 public interface ProjectLangRepository extends CrudRepository<ProjectLang, Long> {
     ProjectLang findById(long id);
-    ProjectLang findByProjectLangId(long id);
+    List<ProjectLang> findByProjectLangId(long id);
     List<ProjectLang> findAll();
 }
