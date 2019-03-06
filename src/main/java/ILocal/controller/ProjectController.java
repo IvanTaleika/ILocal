@@ -1,9 +1,8 @@
 package ILocal.controller;
 
+
 import ILocal.entity.Project;
-import ILocal.entity.ProjectContributor;
 import ILocal.entity.Term;
-import ILocal.entity.User;
 import ILocal.repository.ProjectContributorRepository;
 import ILocal.repository.ProjectLangRepository;
 import ILocal.repository.ProjectRepository;
@@ -76,13 +75,10 @@ public class ProjectController {
 
     @DeleteMapping("/language/delete")
     public boolean deleteProjectLang(@RequestBody long id) {
-      if (projectLangRepository.findById(id).isDefault()) {
-        return false;
-      }
-      if (projectLangRepository.findById(id) != null) {
+        if(projectLangRepository.findById(id).isDefault()) return false;
+        if (projectLangRepository.findById(id) != null)
         projectLangRepository.deleteById(id);
-      }
-      return true;
+        return true;
     }
 
     @PostMapping("/{id}/add/contributor")
@@ -109,38 +105,11 @@ public class ProjectController {
         projectService.deleteTermFromProject(project, term_id);
     }
 
-  @DeleteMapping("/flush")
-  public void flush(@RequestBody long id) {
-    Project project = projectRepository.findById(id);
-    if (project == null) {
-      return;
+    @DeleteMapping("/flush")
+    public void flush(@RequestBody long id){
+        Project project = projectRepository.findById(id);
+        if(project == null) return;
+        projectService.flush(project);
     }
-    projectService.flush(project);
-  }
 
-  @GetMapping("/search")
-  public List<Project> search(@RequestParam(required = false) String name,
-      @RequestParam(required = false) String term) {
-    if (name != null) {
-      return projectService.searchByName(name);
-    }
-    if (term != null) {
-      return projectService.searchByTerm(term);
-    }
-    return null;
-  }
-
-  @GetMapping("/{userId}/projects")
-  public List<Project> getUserProjects(@PathVariable("userId") User user) {
-    return projectRepository.findByAuthor(user);
-  }
-
-  @GetMapping("/{userId}/contributions")
-  public List<Project> getUserContributions(@PathVariable("userId") User user) {
-    ProjectContributor contributor = contributorRepository.findByContributor(user);
-    if (contributor == null) {
-      return null;
-    }
-    return projectRepository.findByContributors(contributor);
-  }
 }
