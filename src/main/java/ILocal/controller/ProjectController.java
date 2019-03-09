@@ -1,16 +1,26 @@
 package ILocal.controller;
 
 import ILocal.entity.Project;
+import ILocal.entity.ProjectContributor;
 import ILocal.entity.Term;
+import ILocal.entity.User;
 import ILocal.repository.ProjectContributorRepository;
 import ILocal.repository.ProjectLangRepository;
 import ILocal.repository.ProjectRepository;
 import ILocal.repository.TermRepository;
 import ILocal.service.ProjectService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @CrossOrigin(origins = "http://localhost:4200", maxAge = 3600)
 @RestController
@@ -65,9 +75,14 @@ public class ProjectController {
     }
 
     @DeleteMapping("/language/delete")
-    public void deleteProjectLang(@RequestBody long id) {
-        if (projectLangRepository.findById(id) == null) return;
+    public boolean deleteProjectLang(@RequestBody long id) {
+      if (projectLangRepository.findById(id).isDefault()) {
+        return false;
+      }
+      if (projectLangRepository.findById(id) != null) {
         projectLangRepository.deleteById(id);
+      }
+      return true;
     }
 
     @PostMapping("/{id}/add/contributor")
@@ -93,4 +108,39 @@ public class ProjectController {
         termRepository.deleteById(term_id);
         projectService.deleteTermFromProject(project, term_id);
     }
+
+  @DeleteMapping("/flush")
+  public void flush(@RequestBody long id) {
+    Project project = projectRepository.findById(id);
+    if (project == null) {
+      return;
+    }
+    projectService.flush(project);
+  }
+
+  @GetMapping("/search")
+  public List<Project> search(@RequestParam(required = false) String name,
+      @RequestParam(required = false) String term) {
+    if (name != null) {
+      return projectService.searchByName(name);
+    }
+    if (term != null) {
+      return projectService.searchByTerm(term);
+    }
+    return null;
+  }
+
+  @GetMapping("/{userId}/projects")
+  public List<Project> getUserProjects(@PathVariable("userId") User user) {
+    return projectRepository.findByAuthor(user);
+  }
+
+  @GetMapping("/{userId}/contributions")
+  public List<Project> getUserContributions(@PathVariable("userId") User user) {
+    ProjectContributor contributor = contributorRepository.findByContributor(user);
+    if (contributor == null) {
+      return null;
+    }
+    return projectRepository.findByContributors(contributor);
+  }
 }

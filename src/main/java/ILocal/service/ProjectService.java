@@ -1,13 +1,27 @@
 package ILocal.service;
 
-import ILocal.entity.*;
-import ILocal.repository.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
+import ILocal.entity.ContributorRole;
+import ILocal.entity.Lang;
+import ILocal.entity.Project;
+import ILocal.entity.ProjectContributor;
+import ILocal.entity.ProjectLang;
+import ILocal.entity.Term;
+import ILocal.entity.TermLang;
+import ILocal.entity.User;
+import ILocal.repository.LangRepository;
+import ILocal.repository.ProjectContributorRepository;
+import ILocal.repository.ProjectLangRepository;
+import ILocal.repository.ProjectRepository;
+import ILocal.repository.TermLangRepository;
+import ILocal.repository.TermRepository;
+import ILocal.repository.UserRepository;
 import java.sql.Date;
 import java.util.Calendar;
 import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 @Service
 public class ProjectService {
@@ -57,9 +71,8 @@ public class ProjectService {
         Lang lang = langRepository.findById(langId);
         projectLang.setLang(lang);
         projectLangRepository.save(projectLang);
-        TermLang termLang;
         for (Term term : project.getTerms()) {
-            termLang = new TermLang();
+          TermLang termLang = new TermLang();
             termLang.setTerm(term);
             termLang.setLang(lang);
             termLang.setValue("");
@@ -92,9 +105,8 @@ public class ProjectService {
         term.setTermValue(termValue);
         term.setProjectId(project.getId());
         termRepository.save(term);
-        TermLang termLang;
         for (ProjectLang projectLang : project.getProjectLangs()) {
-            termLang = new TermLang();
+          TermLang termLang = new TermLang();
             termLang.setTerm(term);
             termLang.setLang(projectLang.getLang());
             termLang.setValue("");
@@ -116,4 +128,35 @@ public class ProjectService {
             }
         }
     }
+
+  public void flush(Project project) {
+    Iterator<Term> termIterator = project.getTerms().iterator();
+    while (termIterator.hasNext()) {
+      Term term = termIterator.next();
+      termIterator.remove();
+      termRepository.delete(term);
+    }
+
+    for (ProjectLang projectLang : project.getProjectLangs()) {
+      Iterator<TermLang> termLangIterator = projectLang.getTermLangs().iterator();
+      while (termLangIterator.hasNext()) {
+        TermLang termLang = termLangIterator.next();
+        termLangIterator.remove();
+        termLangRepository.delete(termLang);
+      }
+    }
+  }
+
+  public List<Project> searchByName(String name) {
+    return projectRepository.findAll().stream()
+        .filter(a -> a.getProjectName().toLowerCase().contains(name.toLowerCase()))
+        .collect(Collectors.toList());
+  }
+
+  public List<Project> searchByTerm(String term) {
+    return projectRepository.findAll().stream()
+        .filter(a -> a.getTerms().stream()
+            .anyMatch(b -> b.getTermValue().toLowerCase().contains(term.toLowerCase())))
+        .collect(Collectors.toList());
+  }
 }

@@ -1,10 +1,8 @@
 package ILocal.repository;
 
-
 import ILocal.entity.TermLang;
-import org.springframework.data.repository.CrudRepository;
-
 import java.util.List;
+import org.springframework.data.repository.CrudRepository;
 
 public interface TermLangRepository extends CrudRepository<TermLang, Long> {
     List<TermLang> findAll();
