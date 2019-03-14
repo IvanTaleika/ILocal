@@ -1,25 +1,13 @@
 package ILocal.controller;
 
-
-import ILocal.entity.Project;
-import ILocal.entity.Term;
-import ILocal.repository.ProjectContributorRepository;
-import ILocal.repository.ProjectLangRepository;
-import ILocal.repository.ProjectRepository;
-import ILocal.repository.TermRepository;
-import ILocal.service.ProjectService;
+import ILocal.entity.*;
+import ILocal.repository.*;
+import ILocal.service.*;
+import java.io.*;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin(origins = "http://localhost:4200", maxAge = 3600)
 @RestController
@@ -40,6 +28,9 @@ public class ProjectController {
 
     @Autowired
     private TermRepository termRepository;
+
+    @Autowired
+    private ParseFile parser;
 
     @GetMapping
     public List<Project> getAll() {
@@ -75,9 +66,9 @@ public class ProjectController {
 
     @DeleteMapping("/language/delete")
     public boolean deleteProjectLang(@RequestBody long id) {
-        if(projectLangRepository.findById(id).isDefault()) return false;
+        if (projectLangRepository.findById(id).isDefault()) return false;
         if (projectLangRepository.findById(id) != null)
-        projectLangRepository.deleteById(id);
+            projectLangRepository.deleteById(id);
         return true;
     }
 
@@ -106,10 +97,51 @@ public class ProjectController {
     }
 
     @DeleteMapping("/flush")
-    public void flush(@RequestBody long id){
+    public void flush(@RequestBody long id) {
         Project project = projectRepository.findById(id);
-        if(project == null) return;
+        if (project == null) return;
         projectService.flush(project);
+    }
+
+    @GetMapping("/search")
+    public List<Project> search(@RequestParam(required = false) String name,
+                                @RequestParam(required = false) String term) {
+        if (name != null) return projectService.searchByName(name);
+        if (term != null) return projectService.searchByTerm(term);
+        return null;
+    }
+
+    @GetMapping("/{userId}/projects")
+    public List<Project> getUserProjects(@PathVariable("userId") User user) {
+        return projectRepository.findByAuthor(user);
+    }
+
+    @GetMapping("/{userId}/contributions")
+    public List<Project> getUserContributions(@PathVariable("userId") User user) {
+        List<Project> projects = projectRepository.findAll();
+        return projects.stream()
+                .filter(a-> a.getContributors().stream().anyMatch(b-> b.getContributor().getId() == user.getId()))
+                .collect(Collectors.toList());
+    }
+
+
+    @PostMapping("/{id}/import-terms")
+    public void importTerms(@PathVariable("id") Project project, File file,
+                            @RequestParam boolean import_values,
+                            @RequestParam(required = false) long projLangId) throws IOException {
+        if (import_values)
+            projectService.importTermsWithValues(project, file, projectLangRepository.findById(projLangId));
+        else projectService.importTerms(project, file);
+    }
+
+    @GetMapping("/{id}/sort")
+    public List<ProjectLang> sortProjectLangs(@PathVariable("id") Project project, @RequestParam(required = false) String sort_order) {
+        return projectService.sort(project.getProjectLangs(), sort_order);
+    }
+
+    @GetMapping("/{userId}/projects/sort")
+    public List<Project> sortUserProjects(@PathVariable("userId") User user, @RequestParam String sort_state){
+        return projectService.sortUserProjects(projectRepository.findByAuthor(user), sort_state);
     }
 
 }

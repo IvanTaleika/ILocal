@@ -1,24 +1,10 @@
 package ILocal.service;
 
-import ILocal.entity.ContributorRole;
-import ILocal.entity.Lang;
-import ILocal.entity.Project;
-import ILocal.entity.ProjectContributor;
-import ILocal.entity.ProjectLang;
-import ILocal.entity.Term;
-import ILocal.entity.TermLang;
-import ILocal.entity.User;
-import ILocal.repository.LangRepository;
-import ILocal.repository.ProjectContributorRepository;
-import ILocal.repository.ProjectLangRepository;
-import ILocal.repository.ProjectRepository;
-import ILocal.repository.TermLangRepository;
-import ILocal.repository.TermRepository;
-import ILocal.repository.UserRepository;
+import ILocal.entity.*;
+import ILocal.repository.*;
+import java.io.*;
 import java.sql.Date;
-import java.util.Calendar;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -47,6 +33,10 @@ public class ProjectService {
     @Autowired
     private TermLangRepository termLangRepository;
 
+
+    @Autowired
+    private ParseFile parser;
+
     public void addProject(Project project, long userId, long langId) {
         ProjectLang lang = new ProjectLang();
         lang.setLang(langRepository.findById(langId));
@@ -55,8 +45,9 @@ public class ProjectService {
         User user = userRepository.findById(userId);
         project.setAuthor(user);
         project.setCreationDate(new Date(Calendar.getInstance().getTime().getTime()));
+        project.setLastUpdate(new Date(Calendar.getInstance().getTime().getTime()));
         projectRepository.save(project);
-        lang.setProjectLangId(project.getId());
+        lang.setProjectId(project.getId());
         projectLangRepository.save(lang);
     }
 
@@ -66,15 +57,16 @@ public class ProjectService {
         }
 
         ProjectLang projectLang = new ProjectLang();
-        projectLang.setProjectLangId(project.getId());
+        projectLang.setProjectId(project.getId());
         projectLang.setDefault(false);
         Lang lang = langRepository.findById(langId);
         projectLang.setLang(lang);
         projectLangRepository.save(projectLang);
         for (Term term : project.getTerms()) {
-          TermLang termLang = new TermLang();
+            TermLang termLang = new TermLang();
             termLang.setTerm(term);
             termLang.setLang(lang);
+            termLang.setStatus(0);
             termLang.setValue("");
             termLang.setProjectLangId(projectLang.getId());
             termLangRepository.save(termLang);
@@ -106,10 +98,12 @@ public class ProjectService {
         term.setProjectId(project.getId());
         termRepository.save(term);
         for (ProjectLang projectLang : project.getProjectLangs()) {
-          TermLang termLang = new TermLang();
+            TermLang termLang = new TermLang();
             termLang.setTerm(term);
             termLang.setLang(projectLang.getLang());
             termLang.setValue("");
+            termLang.setStatus(0);
+            termLang.setModifiedDate(new Date(Calendar.getInstance().getTime().getTime()));
             termLang.setProjectLangId(projectLang.getId());
             termLangRepository.save(termLang);
         }
@@ -119,9 +113,9 @@ public class ProjectService {
     public void deleteTermFromProject(Project project, long termId) {
         for (ProjectLang projectLang : project.getProjectLangs()) {
             Iterator<TermLang> iterator = projectLang.getTermLangs().iterator();
-            while(iterator.hasNext()){
+            while (iterator.hasNext()) {
                 TermLang termLang = iterator.next();
-                if(termLang.getTerm().getId() == termId){
+                if (termLang.getTerm().getId() == termId) {
                     iterator.remove();
                     termLangRepository.delete(termLang);
                 }
@@ -129,34 +123,138 @@ public class ProjectService {
         }
     }
 
-  public void flush(Project project) {
-    Iterator<Term> termIterator = project.getTerms().iterator();
-    while (termIterator.hasNext()) {
-      Term term = termIterator.next();
-      termIterator.remove();
-      termRepository.delete(term);
+    public void flush(Project project) {
+        Iterator<Term> termIterator = project.getTerms().iterator();
+        while (termIterator.hasNext()) {
+            Term term = termIterator.next();
+            termIterator.remove();
+            termRepository.delete(term);
+        }
+
+        for (ProjectLang projectLang : project.getProjectLangs()) {
+            Iterator<TermLang> termLangIterator = projectLang.getTermLangs().iterator();
+            while (termLangIterator.hasNext()) {
+                TermLang termLang = termLangIterator.next();
+                termLangIterator.remove();
+                termLangRepository.delete(termLang);
+            }
+        }
     }
 
-    for (ProjectLang projectLang : project.getProjectLangs()) {
-      Iterator<TermLang> termLangIterator = projectLang.getTermLangs().iterator();
-      while (termLangIterator.hasNext()) {
-        TermLang termLang = termLangIterator.next();
-        termLangIterator.remove();
-        termLangRepository.delete(termLang);
-      }
+    public List<Project> searchByName(String name) {
+        return projectRepository.findAll().stream()
+                .filter(a -> a.getProjectName().toLowerCase().contains(name.toLowerCase()))
+                .collect(Collectors.toList());
     }
-  }
 
-  public List<Project> searchByName(String name) {
-    return projectRepository.findAll().stream()
-        .filter(a -> a.getProjectName().toLowerCase().contains(name.toLowerCase()))
-        .collect(Collectors.toList());
-  }
+    public List<Project> searchByTerm(String term) {
+        return projectRepository.findAll().stream()
+                .filter(a -> a.getTerms().stream().anyMatch(b -> b.getTermValue().toLowerCase().contains(term.toLowerCase())))
+                .collect(Collectors.toList());
+    }
 
-  public List<Project> searchByTerm(String term) {
-    return projectRepository.findAll().stream()
-        .filter(a -> a.getTerms().stream()
-            .anyMatch(b -> b.getTermValue().toLowerCase().contains(term.toLowerCase())))
-        .collect(Collectors.toList());
-  }
+    public void importTerms(Project project, File file) throws IOException {
+        Map<String, String> termsMap = parser.parseFile(file);
+        for (String key : termsMap.keySet()) {
+            if (project.getTerms().stream().noneMatch(a -> a.getTermValue().equals(key))) {
+                Term term = new Term();
+                term.setProjectId(project.getId());
+                term.setTermValue(key);
+                termRepository.save(term);
+                project.getTerms().add(term);
+            }
+        }
+        projectRepository.save(project);
+    }
+
+    public void importTermsWithValues(Project project, File file, ProjectLang projectLang) throws IOException {
+        Map<String, String> termsMap = parser.parseFile(file);
+        for (String key : termsMap.keySet()) {
+            if (project.getTerms().stream().noneMatch(a -> a.getTermValue().equals(key))) {
+                Term term = new Term();
+                term.setProjectId(project.getId());
+                term.setTermValue(key);
+                termRepository.save(term);
+                TermLang termLang = new TermLang();
+                termLang.setValue(termsMap.get(key));
+                termLang.setProjectLangId(projectLang.getId());
+                termLang.setTerm(term);
+                termLang.setStatus(0);
+                termLang.setModifiedDate(new Date(Calendar.getInstance().getTime().getTime()));
+                termLang.setLang(projectLang.getLang());
+                termLangRepository.save(termLang);
+                projectLang.getTermLangs().add(termLang);
+                projectLangRepository.save(projectLang);
+                project.getTerms().add(term);
+            }
+        }
+        projectRepository.save(project);
+    }
+
+    public List<ProjectLang> sort(List<ProjectLang> projectLangs, String sort_order) {
+        if (sort_order != null)
+            switch (sort_order) {
+                case "lang_ASC": {
+                    projectLangs = projectLangs.stream()
+                            .sorted((a, b) -> a.getLang().getLangName().toLowerCase()
+                                    .compareTo(b.getLang().getLangName().toLowerCase())).collect(Collectors.toList());
+                    break;
+                }
+                case "lang_DESC": {
+                    projectLangs = projectLangs.stream()
+                            .sorted((b, a) -> a.getLang().getLangName().toLowerCase()
+                                    .compareTo(b.getLang().getLangName().toLowerCase())).collect(Collectors.toList());
+                    break;
+                }
+                case "progress_ASC": {
+                    projectLangs = projectLangs.stream()
+                            .sorted((a, b) -> checkProgress(a).compareTo(checkProgress(b))).collect(Collectors.toList());
+                    break;
+                }
+                case "progress_DESC": {
+                    projectLangs = projectLangs.stream()
+                            .sorted((b, a) -> checkProgress(a).compareTo(checkProgress(b))).collect(Collectors.toList());
+                    break;
+                }
+            }
+
+        return projectLangs;
+    }
+
+    public Double checkProgress(ProjectLang projectLang) {
+        return projectLang.getTermLangs().stream()
+                .filter(a -> !a.getValue().equals("")).count() / (double) projectLang.getTermLangs().size();
+    }
+
+    public List<Project> sortUserProjects(List<Project> projects, String sort_state) {
+        if (sort_state != null)
+            switch (sort_state) {
+                case "name_ASC":
+                    projects = projects.stream().sorted((a, b) -> a.getProjectName().toLowerCase().compareTo(b.getProjectName().toLowerCase()))
+                            .collect(Collectors.toList());
+                    break;
+                case "name_DESC":
+                    projects = projects.stream().sorted((b, a) -> a.getProjectName().toLowerCase().compareTo(b.getProjectName().toLowerCase()))
+                            .collect(Collectors.toList());
+                    break;
+                case "progress_ASC":
+                    projects = projects.stream().sorted((a, b) -> checkProjectProgress(a).compareTo(checkProjectProgress(b)))
+                            .collect(Collectors.toList());
+                    break;
+                case "progress_DESC":
+                    projects = projects.stream().sorted((b, a) -> checkProjectProgress(a).compareTo(checkProjectProgress(b)))
+                            .collect(Collectors.toList());
+                    break;
+            }
+
+        return projects;
+    }
+
+    public Double checkProjectProgress(Project project) {
+        Double result = 0.0;
+        for (ProjectLang projectLang : project.getProjectLangs()) {
+            result += checkProgress(projectLang);
+        }
+        return result / project.getProjectLangs().size();
+    }
 }

@@ -1,19 +1,11 @@
 package ILocal.entity;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
+import javax.persistence.*;
+import org.hibernate.annotations.*;
 
 @Entity
 @Table(name = "project_lang")
@@ -23,7 +15,7 @@ public class ProjectLang {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    private Long projectLangId;
+    private Long projectId;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "lang_id")
@@ -45,12 +37,12 @@ public class ProjectLang {
         this.id = id;
     }
 
-    public Long getProjectLangId() {
-        return projectLangId;
+    public Long getProjectId() {
+        return projectId;
     }
 
-    public void setProjectLangId(Long projectLangId) {
-        this.projectLangId = projectLangId;
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
     }
 
     public Lang getLang() {

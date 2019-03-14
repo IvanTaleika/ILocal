@@ -1,20 +1,12 @@
 package ILocal.entity;
 
 import java.sql.Date;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
+import javax.persistence.*;
+import org.hibernate.annotations.*;
 
 @Entity
 @Table(name="project")
@@ -37,7 +29,7 @@ public class Project {
     @Fetch(value = FetchMode.SUBSELECT)
     private List<ProjectContributor> contributors =  new ArrayList<>();
 
-    @OneToMany(mappedBy = "projectLangId", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "projectId", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @Fetch(value = FetchMode.SUBSELECT)
     private List<ProjectLang> projectLangs =  new ArrayList<>();
 

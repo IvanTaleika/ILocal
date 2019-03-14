@@ -2,13 +2,8 @@ package ILocal.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.sql.Date;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import java.util.List;
+import javax.persistence.*;
 
 @Entity
 @Table(name = "term_lang")
@@ -30,6 +25,12 @@ public class TermLang {
     @JsonIgnore
     private Long projectLangId;
 
+    @JsonIgnore
+    private int status;
+
+    @Transient
+    private List<String> flags;
+
     private String value;
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -37,7 +38,6 @@ public class TermLang {
     private User modifier;
 
     private Date modifiedDate;
-    private boolean isFuzzy;
 
     public TermLang(){}
 
@@ -89,19 +89,27 @@ public class TermLang {
         this.modifiedDate = modifiedDate;
     }
 
-    public boolean isFuzzy() {
-        return isFuzzy;
-    }
-
-    public void setFuzzy(boolean fuzzy) {
-        isFuzzy = fuzzy;
-    }
-
-    public Long getProjectLangId() {
+    public long getProjectLangId() {
         return projectLangId;
     }
 
     public void setProjectLangId(Long projectLangId) {
         this.projectLangId = projectLangId;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
+
+    public List<String> getFlags() {
+        return flags;
+    }
+
+    public void setFlags(List<String> flags) {
+        this.flags = flags;
     }
 }

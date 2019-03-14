@@ -1,16 +1,7 @@
 package ILocal.entity;
 
 
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Entity
 @Table(name = "project_contributor")
@@ -25,10 +16,21 @@ public class ProjectContributor {
     private User contributor;
     private Long project;
 
+    @Transient
+    private String projectName;
+
     @Enumerated(EnumType.STRING)
     private ContributorRole role;
 
     public ProjectContributor(){}
+
+    public String getProjectName() {
+        return projectName;
+    }
+
+    public void setProjectName(String projectName) {
+        this.projectName = projectName;
+    }
 
     public Long getId() {
         return id;
@@ -54,7 +56,7 @@ public class ProjectContributor {
         this.role = role;
     }
 
-    public Long getProject() {
+    public long getProject() {
         return project;
     }
 
