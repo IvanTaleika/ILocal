@@ -1,13 +1,19 @@
 package ILocal.controller;
 
-import ILocal.entity.*;
-import ILocal.repository.*;
-import ILocal.service.*;
-import java.io.*;
-import java.util.*;
-import java.util.stream.Collectors;
+import ILocal.entity.Lang;
+import ILocal.entity.Project;
+import ILocal.entity.ProjectLang;
+import ILocal.entity.TermLang;
+import ILocal.repository.LangRepository;
+import ILocal.repository.ProjectLangRepository;
+import ILocal.service.BitFlagService;
+import ILocal.service.ProjectLangService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
 
 @CrossOrigin(origins = "http://localhost:4200", maxAge = 3600)
 @RestController
@@ -31,15 +37,11 @@ public class ProjectLangController {
         return projectLangRepository.findAll();
     }
 
-    @GetMapping("/{id}")
-    public ProjectLang getProjectLang(@PathVariable("id") ProjectLang projectLang) {
-        projectLang.getTermLangs().stream()
-                .forEach(a -> {
-                    EnumSet<BitFlagService.StatusFlag> flags = bitFlag.getStatusFlags(a.getStatus());
-                    List<String> list = new ArrayList<>();
-                    flags.forEach(b -> list.add(b.toString()));
-                    a.setFlags(list);
-                });
+    @GetMapping("/{id}/project/{projId}")
+    public ProjectLang getProjectLang(@PathVariable("id") ProjectLang projectLang,
+                                      @PathVariable("projId") Project project) {
+        if (!project.getProjectLangs().contains(projectLang)) return null;
+        projectLang.setTermLangs(projectLangService.setFlags(projectLang.getTermLangs()));
         return projectLang;
     }
 
@@ -66,29 +68,38 @@ public class ProjectLangController {
         projectLang.setTermLangs(newLang.getTermLangs());
         projectLangRepository.save(projectLang);
     }
-
-    @GetMapping("/{id}/filter")
-    public List<TermLang> filterTermLang(@PathVariable("id") ProjectLang projectLang,
-                                         @RequestParam(required = false) Boolean untranslated,
-                                         @RequestParam(required = false) Boolean fuzzy) {
-        return projectLangService.filter(projectLang, untranslated, fuzzy);
-    }
+//
+//    @GetMapping("/{id}/filter")
+//    public List<TermLang> filterTermLang(@PathVariable("id") ProjectLang projectLang,
+//                                         @RequestParam(required = false) Boolean untranslated,
+//                                         @RequestParam(required = false) Boolean fuzzy) {
+//        return projectLangService.filter(projectLang, untranslated, fuzzy);
+//    }
 
     @PostMapping("/{id}/import-translations")
     public void importTranslations(@PathVariable("id") ProjectLang projectLang, File file) throws IOException {
         projectLangService.importTranslations(projectLang, file);
     }
+//
+//    @GetMapping("/{id}/sort")
+//    public List<TermLang> sort(@PathVariable("id") ProjectLang projectLang,
+//                               @RequestParam(required = false) String sort_state) {
+//        return projectLangService.sort(projectLang, sort_state);
+//    }
 
-    @GetMapping("/{id}/sort")
-    public List<TermLang> sort(@PathVariable("id") ProjectLang projectLang,
-                               @RequestParam(required = false) String sort_order) {
-        return projectLangService.sort(projectLang, sort_order);
+    @GetMapping("/{id}/filter")
+    public List<TermLang> doFilter(@PathVariable("id") ProjectLang projectLang,
+								   @RequestParam(required = false) String term,
+								   @RequestParam(required = false) Boolean untranslated,
+								   @RequestParam(required = false) Boolean fuzzy,
+								   @RequestParam(required = false) String sort_state) {
+        if(projectLang == null) return null;
+        return projectLangService.doFilter(projectLang, term, untranslated, fuzzy, sort_state);
     }
 
-    @GetMapping("/{id}/search")
-    public List<TermLang> search(@PathVariable("id") ProjectLang projectLang, @RequestParam String term){
-        return projectLang.getTermLangs().stream()
-                .filter(a-> a.getTerm().getTermValue().toLowerCase().contains(term.toLowerCase()))
-                .collect(Collectors.toList());
+    @PostMapping("/{id}/flush-translations")
+    public void flushTranslations(@PathVariable("id") ProjectLang projectLang) {
+        projectLang.getTermLangs().forEach(a -> a.setValue(""));
+        projectLangRepository.save(projectLang);
     }
 }

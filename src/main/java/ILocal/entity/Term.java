@@ -1,7 +1,9 @@
 package ILocal.entity;
 
-import java.util.Objects;
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "term")
@@ -13,6 +15,9 @@ public class Term {
 
     private Long projectId;
     private String termValue;
+
+    @Transient
+    private List<TermLang> translations = new ArrayList<>();
 
     public Term(){}
 
@@ -38,6 +43,14 @@ public class Term {
 
     public void setTermValue(String termValue) {
         this.termValue = termValue;
+    }
+
+    public List<TermLang> getTranslations() {
+        return translations;
+    }
+
+    public void setTranslations(List<TermLang> translations) {
+        this.translations = translations;
     }
 
     @Override

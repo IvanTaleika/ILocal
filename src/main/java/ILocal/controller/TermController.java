@@ -1,12 +1,15 @@
 package ILocal.controller;
 
-
-import ILocal.entity.*;
+import ILocal.entity.Project;
+import ILocal.entity.Term;
+import ILocal.entity.TermLang;
+import ILocal.repository.TermLangRepository;
 import ILocal.repository.TermRepository;
-import java.util.List;
-import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "http://localhost:4200", maxAge = 3600)
 @RestController
@@ -15,6 +18,9 @@ public class TermController {
 
     @Autowired
     private TermRepository termRepository;
+
+    @Autowired
+    private TermLangRepository termLangRepository;
 
     @GetMapping
     public List<Term> getAll() {
@@ -61,6 +67,11 @@ public class TermController {
                 }
             }
         return terms;
+    }
+
+    @GetMapping("/{id}/translations")
+    public List<TermLang> getTranslations(@PathVariable("id") Term term){
+        return termLangRepository.findByTerm(term);
     }
 
 }

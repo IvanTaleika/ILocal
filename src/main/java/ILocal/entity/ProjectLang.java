@@ -1,11 +1,11 @@
 package ILocal.entity;
 
-import java.util.*;
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+
 import javax.persistence.*;
-import org.hibernate.annotations.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "project_lang")

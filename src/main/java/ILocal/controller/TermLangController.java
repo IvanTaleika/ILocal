@@ -1,12 +1,17 @@
 package ILocal.controller;
 
 import ILocal.entity.TermLang;
-import ILocal.repository.*;
+import ILocal.repository.ProjectLangRepository;
+import ILocal.repository.TermLangRepository;
+import ILocal.repository.UserRepository;
 import ILocal.service.BitFlagService;
-import java.sql.Date;
-import java.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.sql.Date;
+import java.util.Calendar;
+import java.util.EnumSet;
+import java.util.List;
 
 @CrossOrigin(origins = "http://localhost:4200", maxAge = 3600)
 @RestController
@@ -32,7 +37,8 @@ public class TermLangController {
 
     //ДОБАВИТЬ ФИГНЮ С БИТОМ!!!!!!!!!!!
     @PutMapping("/{id}/update")
-    public void updateValue(@PathVariable("id") TermLang termLang, @RequestBody String newVal, @RequestParam long writer_id) {
+    public void updateValue(@PathVariable("id") TermLang termLang, @RequestBody(required = false) String newVal, @RequestParam(required = false) long writer_id) {
+        if(newVal == null) newVal="";
         termLang.setValue(newVal);
         termLang.setModifier(userRepository.findById(writer_id));
         termLang.setModifiedDate(new Date(Calendar.getInstance().getTime().getTime()));

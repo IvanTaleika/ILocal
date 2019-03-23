@@ -1,13 +1,17 @@
 package ILocal.service;
 
-import ILocal.entity.*;
-import ILocal.repository.*;
-import java.io.*;
+import ILocal.entity.ProjectLang;
+import ILocal.entity.TermLang;
+import ILocal.repository.ProjectLangRepository;
+import ILocal.repository.TermLangRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.io.File;
+import java.io.IOException;
 import java.sql.Date;
 import java.util.*;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 @Service
 public class ProjectLangService {
@@ -24,8 +28,7 @@ public class ProjectLangService {
     @Autowired
     private ParseFile parser;
 
-    public List<TermLang> filter(ProjectLang projectLang, Boolean untranslated, Boolean fuzzy) {
-        List<TermLang> termLangs = projectLang.getTermLangs();
+    public List<TermLang> filter(List<TermLang> termLangs, Boolean untranslated, Boolean fuzzy) {
         if (untranslated != null && untranslated) {
             termLangs = termLangs.stream().filter(a -> a.getValue().equals("")).collect(Collectors.toList());
         } else if (untranslated != null) {
@@ -43,7 +46,7 @@ public class ProjectLangService {
                 return !enumSet.contains(BitFlagService.StatusFlag.FUZZY);
             }).collect(Collectors.toList());
         }
-        return termLangs;
+        return setFlags(termLangs);
     }
 
     public void importTranslations(ProjectLang projectLang, File file) throws IOException {
@@ -58,14 +61,13 @@ public class ProjectLangService {
         projectLangRepository.save(projectLang);
     }
 
-    public List<TermLang> sort(ProjectLang projectLang, String sort_order) {
-        List<TermLang> termLangs = projectLang.getTermLangs();
-        if (sort_order != null)
-            switch (sort_order) {
+    public List<TermLang> sort(List<TermLang> termLangs, String sort_state) {
+        if (sort_state != null)
+            switch (sort_state) {
                 case "key_ASC": {
                     termLangs = termLangs.stream()
                             .sorted((a, b) -> a.getTerm().getTermValue().toLowerCase()
-                                    .compareTo(b.getTerm().getTermValue().toString()))
+                                    .compareTo(b.getTerm().getTermValue()))
                             .collect(Collectors.toList());
                     break;
                 }
@@ -89,6 +91,32 @@ public class ProjectLangService {
                     break;
                 }
             }
-        return termLangs;
+        return setFlags(termLangs);
+    }
+
+    public List<TermLang> search(List<TermLang> termLangs, String term){
+        if(term == null) return termLangs;
+        return termLangs.stream()
+                .filter(a -> a.getTerm().getTermValue().toLowerCase().contains(term.toLowerCase()))
+                .collect(Collectors.toList());
+    }
+
+    public List<TermLang> doFilter(ProjectLang projectLang, String term,
+                                   Boolean untranslated, Boolean fuzzy, String order_state){
+    List<TermLang> langs = projectLang.getTermLangs();
+    langs = search(langs, term);
+    langs = filter(langs, untranslated, fuzzy);
+    return sort(langs, order_state);
+    }
+
+    public List<TermLang> setFlags(List<TermLang> terms){
+        terms.forEach(a -> {
+                    EnumSet<BitFlagService.StatusFlag> flags = bitFlagService.getStatusFlags(a.getStatus());
+                    List<String> list = new ArrayList<>();
+                    flags.forEach(b -> list.add(b.toString()));
+                    a.setFlags(list);
+                });
+        return terms;
+
     }
 }

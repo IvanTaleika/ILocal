@@ -1,9 +1,11 @@
 package ILocal.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import java.sql.Date;
-import java.util.List;
+
 import javax.persistence.*;
+import java.sql.Date;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "term_lang")
@@ -22,14 +24,13 @@ public class TermLang {
     @JoinColumn(name = "lang_id")
     private Lang lang;
 
-    @JsonIgnore
     private Long projectLangId;
 
     @JsonIgnore
     private int status;
 
     @Transient
-    private List<String> flags;
+    private List<String> flags = new ArrayList<>();
 
     private String value;
 

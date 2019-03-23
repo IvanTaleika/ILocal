@@ -1,11 +1,14 @@
 package ILocal.controller;
 
 import ILocal.entity.User;
-import ILocal.repository.*;
-import ILocal.service.*;
-import java.util.*;
+import ILocal.repository.ProjectRepository;
+import ILocal.repository.UserRepository;
+import ILocal.service.MailService;
+import ILocal.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @CrossOrigin(origins = "http://localhost:4200", maxAge = 3600)
 @RequestMapping("/user")
@@ -41,19 +44,12 @@ public class UserController {
 
     @GetMapping("/activate/{code}")
     public boolean activate(@PathVariable String code) {
-        boolean isActivated = userService.activateUser(code);
-        if (isActivated) {
-            return true;
-        }
-        return false;
+        return userService.activateUser(code);
     }
 
     @PostMapping("/registration")
-    public boolean addUser(User user, Map<String, Object> model) {
-        if (!userService.registrationUser(user)) {
-            return false;
-        }
-        return true;
+    public boolean addUser(@RequestBody User user) {
+        return userService.registrationUser(user);
     }
 
     @PostMapping("/login")
@@ -71,11 +67,5 @@ public class UserController {
     public void deleteUser(@RequestBody long id) {
         userRepository.delete(userRepository.findById(id));
     }
-
-    /*@PostMapping("/testSend")
-    public void send() {
-        mailService.send("zotehojo@datasoma.com", "active",
-                "rabotaet");
-    }*/
 }
 
