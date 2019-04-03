@@ -58,10 +58,11 @@
   
  ## "To be" архитектура:
  1. Диаграмма компонентов.
- ![]()
+ ![](https://github.com/IvanTaleika/ILocal/blob/chizh/documents/diagrams/ComponentDiagramToBe.jpg)
  2. Диаграмма развертывания.
- ![]()
+ ![](https://github.com/IvanTaleika/ILocal/blob/chizh/documents/diagrams/DeploymentDiagramToBe.jpg)
  3. Диаграмма классов
+ ![](https://github.com/IvanTaleika/ILocal/blob/chizh/documents/diagrams/ClassDiagram.png)
  
  <a name="part2"/>
  
@@ -71,9 +72,9 @@
  
  ## "As is" архитектура:
  1. Диаграмма компонентов.
- ![]()
+ ![](https://github.com/IvanTaleika/ILocal/blob/chizh/documents/diagrams/ComponentDiagramAsIs.jpg)
  2. Диаграмма развертывания.
- ![]()
+ ![](https://github.com/IvanTaleika/ILocal/blob/chizh/documents/diagrams/DeploymentDiagramAsIs.jpg)
  
  <a name="part3"/>
  
