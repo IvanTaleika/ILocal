@@ -1,9 +1,7 @@
 package ILocal.repository;
 
 
-import ILocal.entity.Project;
-import ILocal.entity.ProjectContributor;
-import ILocal.entity.User;
+import ILocal.entity.*;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.List;

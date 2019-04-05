@@ -1,13 +1,8 @@
 package ILocal.controller;
 
 
-import ILocal.entity.ContributorRole;
-import ILocal.entity.Project;
-import ILocal.entity.ProjectContributor;
-import ILocal.entity.User;
-import ILocal.repository.ProjectContributorRepository;
-import ILocal.repository.ProjectRepository;
-import ILocal.repository.UserRepository;
+import ILocal.entity.*;
+import ILocal.repository.*;
 import ILocal.service.MailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
@@ -15,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "http://localhost:4200", maxAge = 3600)
@@ -47,7 +43,9 @@ public class ContributorController {
 
     @GetMapping("/{id}/search")
     public List<ProjectContributor> searchContributor(@PathVariable("id") Project project, @RequestParam String username) {
-        List<ProjectContributor> contributors =  project.getContributors().stream().filter(a -> a.getContributor().getUsername().toLowerCase()
+        List<ProjectContributor> contributors = project.getContributors();
+        if(username!= null && !username.equals(""))
+        contributors =  contributors.stream().filter(a -> a.getContributor().getUsername().toLowerCase()
                 .contains(username.toLowerCase())).collect(Collectors.toList());
         contributors.forEach(a-> a.setProjectName(project.getProjectName()));
         return contributors;

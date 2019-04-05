@@ -2,13 +2,13 @@ package ILocal.controller;
 
 
 import ILocal.entity.TermLang;
-import ILocal.repository.ProjectLangRepository;
-import ILocal.repository.TermLangRepository;
-import ILocal.repository.UserRepository;
+import ILocal.repository.*;
 import ILocal.service.BitFlagService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.sql.Date;
 import java.util.Calendar;
 import java.util.EnumSet;
@@ -37,42 +37,52 @@ public class TermLangController {
     }
 
     @PutMapping("/{id}/update")
-    public void updateValue(@PathVariable("id") TermLang termLang, @RequestBody(required = false) String newVal, @RequestParam(required = false) long writer_id) {
-        if(newVal == null) {
-            EnumSet<BitFlagService.StatusFlag> enumSet = bitFlagService.getStatusFlags(termLang.getStatus());
-            if(enumSet.contains(BitFlagService.StatusFlag.FUZZY)){termLang.setStatus(termLang.getStatus() - BitFlagService.StatusFlag.FUZZY.getValue());}
-            newVal="";
+    public void updateValue(@PathVariable("id") TermLang termLang,
+                            @RequestBody(required = false) String newVal,
+                            @RequestParam(required = false) long writer_id,
+                            HttpServletResponse response) throws IOException {
+        if (termLang == null) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Term lang is not found!");
+            return;
         }
+        if (newVal == null) {
+            if (bitFlagService.isContainsFlag(termLang.getStatus(), BitFlagService.StatusFlag.FUZZY)) {
+                bitFlagService.dropFlag(termLang, BitFlagService.StatusFlag.FUZZY);
+            }
+            newVal = "";
+        }
+        if (bitFlagService.isContainsFlag(termLang.getStatus(), BitFlagService.StatusFlag.AUTOTRANSLATED))
+            bitFlagService.dropFlag(termLang, BitFlagService.StatusFlag.AUTOTRANSLATED);
+
         termLang.setValue(newVal);
         termLang.setModifier(userRepository.findById(writer_id));
         termLang.setModifiedDate(new Date(Calendar.getInstance().getTime().getTime()));
         if (projectLangRepository.findById(termLang.getProjectLangId()).isDefault()) {
             List<TermLang> termLangs = termLangRepository.findByTerm(termLang.getTerm());
             termLangs.remove(termLang);
-
             termLangs.forEach(a -> {
-                EnumSet<BitFlagService.StatusFlag> enumSet = bitFlagService.getStatusFlags(a.getStatus());
-                if(!enumSet.contains(BitFlagService.StatusFlag.DEFAULT_WAS_CHANGED) && !a.getValue().isEmpty())
-                a.setStatus(a.getStatus() + BitFlagService.StatusFlag.DEFAULT_WAS_CHANGED.getValue());
+                if (!bitFlagService.isContainsFlag(a.getStatus(), BitFlagService.StatusFlag.DEFAULT_WAS_CHANGED))
+                    bitFlagService.addFlag(a, BitFlagService.StatusFlag.DEFAULT_WAS_CHANGED);
             });
-        }else{
-            EnumSet<BitFlagService.StatusFlag> enumSet = bitFlagService.getStatusFlags(termLang.getStatus());
-            if(enumSet.contains(BitFlagService.StatusFlag.DEFAULT_WAS_CHANGED)){
-                termLang.setStatus(termLang.getStatus() -  BitFlagService.StatusFlag.DEFAULT_WAS_CHANGED.getValue());
-            }
+        } else {
+            if (bitFlagService.isContainsFlag(termLang.getStatus(), BitFlagService.StatusFlag.DEFAULT_WAS_CHANGED))
+                bitFlagService.dropFlag(termLang, BitFlagService.StatusFlag.DEFAULT_WAS_CHANGED);
         }
         termLangRepository.save(termLang);
     }
 
     @PutMapping("/{id}/fuzzy")
-    public void fuzzy(@PathVariable("id") TermLang termLang, @RequestParam Boolean fuzzy) {
-        EnumSet<BitFlagService.StatusFlag> enumSet = bitFlagService.getStatusFlags(termLang.getStatus());
+    public void fuzzy(@PathVariable("id") TermLang termLang, @RequestParam Boolean fuzzy, HttpServletResponse response) throws IOException {
+        if (termLang == null) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Term lang is not found!");
+            return;
+        }
         if (fuzzy != null && fuzzy) {
-            if(!enumSet.contains(BitFlagService.StatusFlag.FUZZY))
-            termLang.setStatus(termLang.getStatus() + BitFlagService.StatusFlag.FUZZY.getValue());
+            if (!bitFlagService.isContainsFlag(termLang.getStatus(), BitFlagService.StatusFlag.FUZZY))
+               bitFlagService.addFlag(termLang, BitFlagService.StatusFlag.FUZZY);
         } else if (fuzzy != null) {
-            if(enumSet.contains(BitFlagService.StatusFlag.FUZZY))
-                termLang.setStatus(termLang.getStatus() - BitFlagService.StatusFlag.FUZZY.getValue());
+            if (bitFlagService.isContainsFlag(termLang.getStatus(), BitFlagService.StatusFlag.FUZZY))
+                bitFlagService.dropFlag(termLang, BitFlagService.StatusFlag.FUZZY);
         }
         termLangRepository.save(termLang);
     }

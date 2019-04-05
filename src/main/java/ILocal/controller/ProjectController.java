@@ -2,16 +2,15 @@ package ILocal.controller;
 
 
 import ILocal.entity.*;
-import ILocal.repository.ProjectContributorRepository;
-import ILocal.repository.ProjectLangRepository;
-import ILocal.repository.ProjectRepository;
-import ILocal.repository.TermRepository;
+import ILocal.repository.*;
 import ILocal.service.ParseFile;
 import ILocal.service.ProjectService;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -39,6 +38,12 @@ public class ProjectController {
     private TermRepository termRepository;
 
     @Autowired
+    private LangRepository langRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
     private ParseFile parser;
 
     @GetMapping
@@ -47,13 +52,21 @@ public class ProjectController {
     }
 
     @GetMapping("/{id}")
-    public Project getProject(@PathVariable("id") Project project) {
+    public Project getProject(@PathVariable("id") Project project, HttpServletResponse response) throws IOException {
+        if(project == null) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project not found!");
+            return null;
+        }
         return project;
     }
 
     @PutMapping("/{id}/update")
     public Project updateProject(@PathVariable("id") Project project, @RequestParam(required = false) String newName,
-                                 @RequestParam(required = false) String newDescription) {
+                                 @RequestParam(required = false) String newDescription, HttpServletResponse response) throws IOException {
+        if(project == null){
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project not fount");
+            return null;
+        }
         if (newName != null && !newName.equals(""))
             project.setProjectName(newName);
         if (newDescription != null && !newDescription.equals(""))
@@ -75,61 +88,65 @@ public class ProjectController {
     }
 
     @PostMapping("/{id}/language/add")
-    public ProjectLang addProjectLang(@PathVariable("id") Project project, @RequestParam long lang_id) {
-        if (lang_id == -1) return null;
-        return projectService.addProjectLang(project, lang_id);
+    public ProjectLang addProjectLang(@PathVariable("id") Project project, @RequestParam long lang_id, HttpServletResponse response) throws IOException {
+        return projectService.addProjectLang(project, lang_id, response);
     }
 
     @PostMapping("/language/delete")
-    public boolean deleteProjectLang(@RequestBody long id) {
-        if (projectLangRepository.findById(id).isDefault()) return false;
-        if (projectLangRepository.findById(id) != null)
+    public void deleteProjectLang(@RequestBody long id, HttpServletResponse response) throws IOException {
+        if (projectLangRepository.findById(id).isDefault()) {
+            response.sendError(HttpServletResponse.SC_BAD_GATEWAY, "You cannot delete default lang!");
+        } else if (projectLangRepository.findById(id) != null)
             projectLangRepository.deleteById(id);
-        return true;
     }
 
     @PostMapping("/{id}/add/contributor")
-    public ProjectContributor addContributor(@PathVariable("id") Project project, @RequestBody User newUser, @RequestParam String role) {
-        return projectService.addContributor(project, newUser, role);
+    public ProjectContributor addContributor(@PathVariable("id") Project project, HttpServletResponse response,
+                                             @RequestBody User newUser, @RequestParam String role) throws IOException {
+        return projectService.addContributor(project, newUser, role, response);
     }
 
     @PostMapping("/delete/contributor")
-    public boolean deleteContributor(@RequestBody long id) {
-        if (contributorRepository.findById(id) == null) return false;
+    public boolean deleteContributor(@RequestBody long id, HttpServletResponse response) throws IOException {
+        if (contributorRepository.findById(id) == null) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Contributor not found!");
+            return false;
+        }
         contributorRepository.deleteById(id);
         return true;
     }
 
     @PostMapping("/{id}/add/term")
-    public Term addTermToProject(@PathVariable("id") Project project, @RequestBody String term) {
-        return projectService.addTerm(project, term);
+    public Term addTermToProject(@PathVariable("id") Project project, @RequestBody String term, HttpServletResponse response) throws IOException {
+        return projectService.addTerm(project, term, response);
     }
 
     @PostMapping("/{id}/delete/term")
-    public boolean deleteTerm(@PathVariable("id") Project project, @RequestBody long term_id) {
-        Term term = termRepository.findById(term_id);
-        if (term == null || project == null) return false;
-        if (!project.getTerms().contains(term)) return false;
-        project.getTerms().remove(term);
-        termRepository.deleteById(term_id);
-        projectService.deleteTermFromProject(project, term_id);
-        return true;
+    public void deleteTerm(@PathVariable("id") Project project, @RequestBody long term_id, HttpServletResponse response) throws IOException {
+        projectService.deleteTermFromProject(project, term_id, response);
     }
 
     @DeleteMapping("/flush")
-    public void flush(@RequestParam long id) {
+    public void flush(@RequestParam long id, HttpServletResponse response) throws IOException {
         Project project = projectRepository.findById(id);
-        if (project == null) return;
-        projectService.flush(project);
+        projectService.flush(project, response);
     }
 
     @GetMapping("/{userId}/projects")
-    public List<Project> getUserProjects(@PathVariable("userId") User user) {
+    public List<Project> getUserProjects(@PathVariable("userId") User user, HttpServletResponse response) throws IOException {
+        if (user == null) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "User not found");
+            return null;
+        }
         return projectRepository.findByAuthor(user);
     }
 
     @GetMapping("/{userId}/contributions")
-    public List<Project> getUserContributions(@PathVariable("userId") User user) {
+    public List<Project> getUserContributions(@PathVariable("userId") User user, HttpServletResponse response) throws IOException {
+        if (user == null) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "User not found");
+            return null;
+        }
         List<Project> projects = projectRepository.findAll();
         return projects.stream()
                 .filter(a -> a.getContributors().stream().anyMatch(b -> b.getContributor().getId() == user.getId()))
@@ -151,8 +168,12 @@ public class ProjectController {
 
     @PostMapping("/{id}/import-terms")
     public List<ProjectLang> importTerms(@PathVariable("id") Project project, MultipartFile file,
-                                         @RequestParam boolean import_values,
+                                         @RequestParam boolean import_values, HttpServletResponse response,
                                          @RequestParam(required = false) Long projLangId) throws IOException {
+        if(file == null){
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Choose file!");
+            return null;
+        }
         File convFile = new File(file.getOriginalFilename());
         convFile.createNewFile();
         FileOutputStream fos = new FileOutputStream(convFile);
@@ -161,7 +182,12 @@ public class ProjectController {
     }
 
     @GetMapping("/{id}/sort")
-    public List<ProjectLang> sortProjectLangs(@PathVariable("id") Project project, @RequestParam(required = false) String sort_state) {
+    public List<ProjectLang> sortProjectLangs(@PathVariable("id") Project project, HttpServletResponse response,
+                                              @RequestParam(required = false) String sort_state) throws IOException {
+        if(project == null){
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project not found!");
+            return null;
+        }
         return projectService.sort(project.getProjectLangs(), sort_state);
     }
 
@@ -174,12 +200,20 @@ public class ProjectController {
     }
 
     @PostMapping("/{id}/notify")
-    public void notify(@PathVariable("id") Project project, @RequestBody String message) {
+    public void notify(@PathVariable("id") Project project, @RequestBody String message, HttpServletResponse response) throws IOException {
+        if(project == null){
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project not found!");
+            return;
+        }
         projectService.notifyContributors(project, message);
     }
 
     @GetMapping("/{id}/name")
-    public String getName(@PathVariable("id") Project project) {
+    public String getName(@PathVariable("id") Project project, HttpServletResponse response) throws IOException {
+        if(project == null){
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project not found!");
+            return null;
+        }
         return project.getProjectName();
     }
 

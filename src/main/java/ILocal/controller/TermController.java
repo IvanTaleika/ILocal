@@ -1,14 +1,14 @@
 package ILocal.controller;
 
 
-import ILocal.entity.Project;
-import ILocal.entity.Term;
-import ILocal.entity.TermLang;
+import ILocal.entity.*;
 import ILocal.repository.TermLangRepository;
 import ILocal.repository.TermRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,19 +29,29 @@ public class TermController {
     }
 
     @GetMapping("/project/{id}")
-    public List<Term> getProjectTerms(@PathVariable("id") Project project) {
-        if (project == null) return null;
+    public List<Term> getProjectTerms(@PathVariable("id") Project project, HttpServletResponse response) throws IOException {
+        if(project== null){
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project not found!");
+            return null;
+        }
         return project.getTerms();
     }
 
     @GetMapping("/{id}")
-    public Term getTerm(@PathVariable("id") Term term) {
+    public Term getTerm(@PathVariable("id") Term term, HttpServletResponse response) throws IOException {
+        if(term== null){
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Term not found!");
+            return null;
+        }
         return term;
     }
 
     @PutMapping("/{id}/update")
-    public void updateTerm(@PathVariable("id") Term term, @RequestBody String newValue) {
-        if (term == null) return;
+    public void updateTerm(@PathVariable("id") Term term, @RequestBody String newValue, HttpServletResponse response) throws IOException {
+        if(term== null){
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Term not found!");
+            return;
+        }
         term.setTermValue(newValue);
         termRepository.save(term);
     }
@@ -49,7 +59,12 @@ public class TermController {
     @GetMapping("/{projectId}/filter")
     public List<Term> filter(@PathVariable("projectId") Project project,
                              @RequestParam(required = false) String sort,
-                             @RequestParam(required = false) String value) {
+                             @RequestParam(required = false) String value,
+                             HttpServletResponse response) throws IOException {
+        if(project == null){
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project not found!");
+            return  null;
+        }
         List<Term> terms = project.getTerms();
         if(value!= null){
             terms = terms.stream()
@@ -71,7 +86,11 @@ public class TermController {
     }
 
     @GetMapping("/{id}/translations")
-    public List<TermLang> getTranslations(@PathVariable("id") Term term){
+    public List<TermLang> getTranslations(@PathVariable("id") Term term, HttpServletResponse response) throws IOException{
+        if(term== null){
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Term not found!");
+            return null;
+        }
         return termLangRepository.findByTerm(term);
     }
 

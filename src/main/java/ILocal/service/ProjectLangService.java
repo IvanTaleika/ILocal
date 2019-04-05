@@ -1,15 +1,13 @@
 package ILocal.service;
 
 
-import ILocal.entity.Project;
 import ILocal.entity.ProjectLang;
 import ILocal.entity.TermLang;
-import ILocal.repository.ProjectLangRepository;
-import ILocal.repository.ProjectRepository;
-import ILocal.repository.TermLangRepository;
+import ILocal.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -24,7 +22,7 @@ public class ProjectLangService {
     private ProjectLangRepository projectLangRepository;
 
     @Autowired
-    private TermLangRepository termLangRepository;
+    private LangRepository langRepository;
 
     @Autowired
     private ProjectRepository projectRepository;
@@ -142,5 +140,31 @@ public class ProjectLangService {
         });
         pw2.close();
         return file;
+    }
+
+    public ProjectLang updateLang(ProjectLang projectLang, long id, HttpServletResponse response) throws IOException {
+        Lang lang = langRepository.findById(id);
+        if(lang == null){
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Lang not found!");
+            return null;
+        }
+        Project project = projectRepository.findById((long)projectLang.getProjectId());
+        if(project == null){
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project not found!");
+            return null;
+        }
+        for (ProjectLang a : project.getProjectLangs()) {
+            if(a.getLang().getId() == id) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Project lang exists in this project!");
+                return null;
+            }
+        }
+        projectLang.setLang(lang);
+        projectLang.getTermLangs().forEach(a -> {
+            a.setValue("");
+            a.setLang(lang);
+        });
+        projectLangRepository.save(projectLang);
+        return projectLang;
     }
 }
