@@ -1,12 +1,14 @@
 package ILocal.service;
 
-
 import ILocal.entity.*;
 import ILocal.repository.*;
+import ILocal.service.MailService;
+import ILocal.service.ParseFile;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Date;
@@ -62,11 +64,25 @@ public class ProjectService {
         return project;
     }
 
-    public ProjectLang addProjectLang(Project project, long langId) {
-        for (ProjectLang projectLang : project.getProjectLangs()) {
-            if (projectLang.getLang().getId() == langId) return null;
+    public ProjectLang addProjectLang(Project project, long langId, HttpServletResponse response) throws IOException {
+        if(project == null){
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project not found!");
+            return null;
         }
-
+        if (langId == -1) {
+            response.sendError(HttpServletResponse.SC_BAD_GATEWAY, "Choose project lang!");
+            return null;
+        }
+        if (langRepository.findById(langId) == null) {
+            response.sendError(HttpServletResponse.SC_BAD_GATEWAY, "Incorrect lang!");
+            return null;
+        }
+        for (ProjectLang projectLang : project.getProjectLangs()) {
+            if (projectLang.getLang().getId() == langId) {
+                response.sendError(HttpServletResponse.SC_BAD_GATEWAY, "Project lang exist!");
+                return null;
+            }
+        }
         ProjectLang projectLang = new ProjectLang();
         projectLang.setProjectId(project.getId());
         projectLang.setDefault(false);
@@ -86,13 +102,26 @@ public class ProjectService {
         return projectLang;
     }
 
-    public ProjectContributor addContributor(Project project, User newUser, String role) {
+    public ProjectContributor addContributor(Project project, User newUser, String role, HttpServletResponse response) throws IOException {
+        if(project == null){
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project not found!");
+            return null;
+        }
+        if (project.getAuthor().getUsername().equals(newUser.getUsername())) {
+            response.sendError(HttpServletResponse.SC_BAD_GATEWAY, "You cannot add author of project!");
+            return null;
+        }
         for (ProjectContributor contributor : project.getContributors()) {
-            if (project.getAuthor().getUsername().equals(newUser.getUsername())) return null;
-            if (contributor.getContributor().getUsername().equals(newUser.getUsername())) return null;
+            if (contributor.getContributor().getUsername().equals(newUser.getUsername())) {
+                response.sendError(HttpServletResponse.SC_BAD_GATEWAY, "Contributor exists is this project!");
+                return null;
+            }
         }
         User user = userRepository.findByUsername(newUser.getUsername());
-        if (user == null) return null;
+        if (user == null) {
+            response.sendError(HttpServletResponse.SC_BAD_GATEWAY, "User not found!");
+            return null;
+        }
         ProjectContributor projectContributor = new ProjectContributor();
         projectContributor.setContributor(user);
         projectContributor.setRole(ContributorRole.valueOf(role));
@@ -101,11 +130,20 @@ public class ProjectService {
         return projectContributor;
     }
 
-    public Term addTerm(Project project, String termValue) {
-        for (Term trm : project.getTerms()) {
-            if (trm.getTermValue().equals(termValue)) return null;
+    public Term addTerm(Project project, String termValue, HttpServletResponse response) throws IOException {
+        if(project == null){
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project not found!");
+            return null;
         }
-
+        if(termValue.equals("")){
+            response.sendError(HttpServletResponse.SC_BAD_GATEWAY, "Term value is empty. Enter value!");
+        }
+        for (Term trm : project.getTerms()) {
+            if (trm.getTermValue().equals(termValue)){
+                response.sendError(HttpServletResponse.SC_BAD_GATEWAY, "Term value is exist in this project!");
+                return null;
+            }
+        }
         Term term = new Term();
         term.setTermValue(termValue);
         term.setProjectId(project.getId());
@@ -123,7 +161,18 @@ public class ProjectService {
         return term;
     }
 
-    public void deleteTermFromProject(Project project, long termId) {
+    public void deleteTermFromProject(Project project, long termId, HttpServletResponse response) throws IOException {
+        Term term = termRepository.findById(termId);
+        if (term == null || project == null){
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Cannot delete term!");
+            return;
+        }
+        if (!project.getTerms().contains(term)){
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Term not found in this project!");
+            return;
+        }
+        project.getTerms().remove(term);
+        termRepository.deleteById(termId);
         for (ProjectLang projectLang : project.getProjectLangs()) {
             Iterator<TermLang> iterator = projectLang.getTermLangs().iterator();
             while (iterator.hasNext()) {
@@ -136,7 +185,11 @@ public class ProjectService {
         }
     }
 
-    public void flush(Project project) {
+    public void flush(Project project, HttpServletResponse response) throws IOException{
+        if (project == null) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project not found");
+            return;
+        }
         Iterator<Term> termIterator = project.getTerms().iterator();
         while (termIterator.hasNext()) {
             Term term = termIterator.next();

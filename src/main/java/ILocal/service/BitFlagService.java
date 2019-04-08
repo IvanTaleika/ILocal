@@ -1,5 +1,6 @@
 package ILocal.service;
 
+import ILocal.entity.TermLang;
 import org.springframework.stereotype.Service;
 
 import java.util.EnumSet;
@@ -10,7 +11,8 @@ public class BitFlagService {
     public enum StatusFlag {
 
         DEFAULT_WAS_CHANGED,
-        FUZZY;
+        FUZZY,
+        AUTOTRANSLATED;
 
         private final int flag;
 
@@ -42,6 +44,21 @@ public class BitFlagService {
             value+=statusFlag.getValue();
         }
         return value;
+    }
+
+    public boolean isContainsFlag(int status, StatusFlag flag){
+        EnumSet<BitFlagService.StatusFlag> enumSet = getStatusFlags(status);
+        if(enumSet.isEmpty()) return false;
+        return enumSet.contains(flag);
+    }
+
+
+    public void addFlag(TermLang term, BitFlagService.StatusFlag flag){
+        term.setStatus(term.getStatus() + flag.getValue());
+    }
+
+    public void dropFlag(TermLang term, BitFlagService.StatusFlag flag){
+        term.setStatus(term.getStatus() - flag.getValue());
     }
 
 }
