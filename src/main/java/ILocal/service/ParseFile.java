@@ -1,12 +1,9 @@
 package ILocal.service;
 
-import org.mozilla.universalchardet.UniversalDetector;
-
 import java.io.*;
 import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
+import org.mozilla.universalchardet.UniversalDetector;
 
 public class ParseFile {
 

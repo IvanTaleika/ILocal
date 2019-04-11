@@ -4,18 +4,17 @@ package ILocal.controller;
 import ILocal.entity.*;
 import ILocal.repository.*;
 import ILocal.service.*;
+import java.io.*;
+import java.net.URLConnection;
+import java.util.List;
+import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import javax.servlet.http.HttpServletResponse;
-import java.io.*;
-import java.net.URLConnection;
-import java.util.EnumSet;
-import java.util.List;
 
 @CrossOrigin(origins = "http://localhost:4200", maxAge = 3600)
 @RestController
@@ -50,7 +49,9 @@ public class ProjectLangController {
 
     @GetMapping("/{id}/project/{projId}")
     public ProjectLang getProjectLang(@PathVariable("id") ProjectLang projectLang, HttpServletResponse response,
-                                      @PathVariable("projId") Project project) throws IOException {
+        @PathVariable("projId") Project project,
+        @PageableDefault(sort = {"id"}, direction = Sort.Direction.ASC) Pageable page)
+        throws IOException {
         if (project == null || projectLang == null) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "Cannot find project or project lang!");
             return null;
@@ -59,10 +60,14 @@ public class ProjectLangController {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Project hasn't contain project lang!");
             return null;
         }
+        projectLangService.setPagesCount(projectLang);
+        projectLangService.setCounts(projectLang);
+        projectLang.setTermLangs(termLangRepository.findByProjectLangId(projectLang.getId(), page));
         projectLang.setTermLangs(projectLangService.setFlags(projectLang.getTermLangs()));
         projectLang.setProjectName(project.getProjectName());
         return projectLang;
     }
+
 
     @GetMapping("/{id}/project/{projId}/terms")
     public List<TermLang> getTermLangs(@PathVariable("id") ProjectLang projectLang, HttpServletResponse response,
@@ -114,7 +119,10 @@ public class ProjectLangController {
     }
 
     @PostMapping("/{id}/import-translations")
-    public List<TermLang> importTranslations(@PathVariable("id") ProjectLang projectLang, MultipartFile file, HttpServletResponse response) throws IOException {
+    public ProjectLang importTranslations(@PathVariable("id") ProjectLang projectLang,
+        MultipartFile file,
+        @PageableDefault(sort = {"id"}, direction = Sort.Direction.ASC) Pageable page,
+        HttpServletResponse response) throws IOException {
         if (file == null) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "File not chosen, Choose the file!");
             return null;
@@ -123,21 +131,31 @@ public class ProjectLangController {
         convFile.createNewFile();
         FileOutputStream fos = new FileOutputStream(convFile);
         fos.write(file.getBytes());
-        return projectLangService.importTranslations(projectLang, convFile);
+        projectLangService.importTranslations(projectLang, convFile);
+        projectLang = projectLangRepository.findById((long) projectLang.getId());
+        projectLangService.setPagesCount(projectLang);
+        projectLangService.setCounts(projectLang);
+        projectLang.setTermLangs(termLangRepository.findByProjectLangId(projectLang.getId(), page));
+        projectLang.setTermLangs(projectLangService.setFlags(projectLang.getTermLangs()));
+        projectLang.setProjectName(
+            projectRepository.findById((long) projectLang.getProjectId()).getProjectName());
+        return projectLang;
     }
 
     @GetMapping("/{id}/filter")
-    public List<TermLang> doFilter(@PathVariable("id") ProjectLang projectLang,
+    public ProjectLang doFilter(@PathVariable("id") ProjectLang projectLang,
                                    @RequestParam(required = false) String term,
                                    @RequestParam(required = false) Boolean untranslated,
                                    @RequestParam(required = false) Boolean fuzzy,
                                    @RequestParam(required = false) String sort_state,
+        Pageable page,
                                    HttpServletResponse response) throws IOException {
         if (projectLang == null) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Project lang not found!");
             return null;
         }
-        return projectLangService.doFilter(projectLang, term, untranslated, fuzzy, sort_state);
+        return projectLangService
+            .doFilter(projectLang, term, untranslated, fuzzy, sort_state, page.getPageNumber());
     }
 
     @PostMapping("/{id}/flush-translations")
@@ -197,7 +215,7 @@ public class ProjectLangController {
             });
 
         });
-        return projectLang.getTermLangs();
+        return projectLangService.setFlags(projectLang.getTermLangs());
     }
 
     @GetMapping("/{id}/export")

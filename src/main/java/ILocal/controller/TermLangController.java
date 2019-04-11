@@ -4,15 +4,13 @@ package ILocal.controller;
 import ILocal.entity.TermLang;
 import ILocal.repository.*;
 import ILocal.service.BitFlagService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.Date;
 import java.util.Calendar;
-import java.util.EnumSet;
 import java.util.List;
+import javax.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin(origins = "http://localhost:4200", maxAge = 3600)
 @RestController

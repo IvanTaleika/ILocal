@@ -1,10 +1,9 @@
 package ILocal.service;
 
 import ILocal.entity.TermLang;
-import org.springframework.stereotype.Service;
-
 import java.util.EnumSet;
 import java.util.Set;
+import org.springframework.stereotype.Service;
 
 @Service
 public class BitFlagService {

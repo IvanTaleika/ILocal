@@ -1,18 +1,21 @@
 package ILocal.service;
 
-
 import ILocal.entity.User;
 import ILocal.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.*;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 @Service
-public class UserService {
+public class UserService implements UserDetailsService {
+
+    @Autowired
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Autowired
     private ParseFile parseFile;
@@ -31,7 +34,7 @@ public class UserService {
             sendActivationLinkToEmail(editUser);
             user.setActivationCode(editUser.getActivationCode());
         }
-        user.setPassword(editUser.getPassword());
+        user.setPassword(bCryptPasswordEncoder.encode(editUser.getPassword()));
         user.setEmail(editUser.getEmail());
         user.setFirstName(editUser.getFirstName());
         user.setLastName(editUser.getLastName());
@@ -47,6 +50,7 @@ public class UserService {
         if (!StringUtils.isEmpty(user.getEmail()) && checkEmail(user.getEmail())) {
             sendActivationLinkToEmail(user);
         }
+        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
         userRepository.save(user);
         return true;
     }
@@ -72,5 +76,10 @@ public class UserService {
         String message = "Hello " + user.getUsername() + "\t\tNice to meet you!\tPlease, visit this link to " +
                 "activate your account: http://localhost:8080/user/activate/" + user.getActivationCode();
         mailService.send(user.getEmail(), "Activate account", message);
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return userRepository.findByUsername(username);
     }
 }

@@ -5,17 +5,14 @@ import ILocal.entity.*;
 import ILocal.repository.*;
 import ILocal.service.ParseFile;
 import ILocal.service.ProjectService;
-import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
-import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @CrossOrigin(origins = "http://localhost:4200", maxAge = 3600)
 @RestController
@@ -47,8 +44,8 @@ public class ProjectController {
     private ParseFile parser;
 
     @GetMapping
-    public List<Project> getAll() {
-        return projectRepository.findAll();
+    public List<Project> getAll(@AuthenticationPrincipal User user) {
+        return projectRepository.findByAuthor(user);
     }
 
     @GetMapping("/{id}")

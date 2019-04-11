@@ -1,11 +1,9 @@
 package ILocal.repository;
 
-
 import ILocal.entity.ProjectContributor;
 import ILocal.entity.User;
-import org.springframework.data.repository.CrudRepository;
-
 import java.util.List;
+import org.springframework.data.repository.CrudRepository;
 
 public interface ProjectContributorRepository extends CrudRepository<ProjectContributor, Long> {
     List<ProjectContributor> findAll();

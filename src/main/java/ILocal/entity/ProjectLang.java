@@ -1,15 +1,11 @@
 package ILocal.entity;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import java.util.ArrayList;
+import java.util.List;
+import javax.persistence.*;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 import org.springframework.data.domain.Persistable;
-
-import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "project_lang")
@@ -30,11 +26,19 @@ public class ProjectLang implements Persistable {
 
     @OneToMany(mappedBy = "projectLangId", cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
     @Fetch(value = FetchMode.SUBSELECT)
-    private List<TermLang> termLangs =  new ArrayList<>();
+    private List<TermLang> termLangs = new ArrayList<>();
 
     private boolean isDefault;
 
-    public ProjectLang(){}
+  @Transient
+  private long termsCount;
+  @Transient
+  private long translatedCount;
+  @Transient
+  private long pagesCount;
+
+  public ProjectLang() {
+  }
 
     public Long getId() {
         return id;
@@ -88,4 +92,28 @@ public class ProjectLang implements Persistable {
     public boolean isNew() {
         return true;
     }
+
+  public long getTermsCount() {
+    return termsCount;
+  }
+
+  public void setTermsCount(long termsCount) {
+    this.termsCount = termsCount;
+  }
+
+  public long getTranslatedCount() {
+    return translatedCount;
+  }
+
+  public void setTranslatedCount(long translatedCount) {
+    this.translatedCount = translatedCount;
+  }
+
+  public long getPagesCount() {
+    return pagesCount;
+  }
+
+  public void setPagesCount(long pagesCount) {
+    this.pagesCount = pagesCount;
+  }
 }
