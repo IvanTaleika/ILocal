@@ -19,6 +19,9 @@ public class Term {
     @Transient
     private List<TermLang> translations = new ArrayList<>();
 
+    @Transient
+    private boolean selected = false;
+
     public Term(){}
 
     public Long getId() {
@@ -64,5 +67,13 @@ public class Term {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    public boolean isSelected() {
+        return selected;
+    }
+
+    public void setSelected(boolean selected) {
+        this.selected = selected;
     }
 }

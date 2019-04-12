@@ -12,7 +12,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.Date;
 import java.util.Calendar;
-import java.util.EnumSet;
 import java.util.List;
 
 @CrossOrigin(origins = "http://localhost:4200", maxAge = 3600)
@@ -62,7 +61,7 @@ public class TermLangController {
             List<TermLang> termLangs = termLangRepository.findByTerm(termLang.getTerm());
             termLangs.remove(termLang);
             termLangs.forEach(a -> {
-                if (!bitFlagService.isContainsFlag(a.getStatus(), BitFlagService.StatusFlag.DEFAULT_WAS_CHANGED))
+                if (!bitFlagService.isContainsFlag(a.getStatus(), BitFlagService.StatusFlag.DEFAULT_WAS_CHANGED) && !a.getValue().equals(""))
                     bitFlagService.addFlag(a, BitFlagService.StatusFlag.DEFAULT_WAS_CHANGED);
             });
         } else {

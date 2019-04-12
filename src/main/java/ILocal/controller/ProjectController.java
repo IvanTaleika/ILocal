@@ -5,6 +5,10 @@ import ILocal.repository.*;
 import ILocal.service.ParseFile;
 import ILocal.service.ProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -12,6 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -45,14 +50,19 @@ public class ProjectController {
     private ParseFile parser;
 
     @GetMapping
-    public List<Project> getAll() {
-        return projectRepository.findAll();
+    public List<Project> getAll(@AuthenticationPrincipal User user) {
+        return projectRepository.findByAuthor(user);
     }
 
     @GetMapping("/{id}")
-    public Project getProject(@PathVariable("id") Project project, HttpServletResponse response) throws IOException {
-        if(project == null) {
+    public Project getProject(@PathVariable("id") Project project, HttpServletResponse response,
+                              @AuthenticationPrincipal User user) throws IOException {
+        if (project == null) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project not found!");
+            return null;
+        }
+        if (accessDenied(project, user, false)) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied!");
             return null;
         }
         return project;
@@ -60,42 +70,53 @@ public class ProjectController {
 
     @PutMapping("/{id}/update")
     public Project updateProject(@PathVariable("id") Project project, @RequestParam(required = false) String newName,
-                                 @RequestParam(required = false) String newDescription, HttpServletResponse response) throws IOException {
-        if(project == null){
-            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project not fount");
-            return null;
-        }
-        if (newName != null && !newName.equals(""))
-            project.setProjectName(newName);
-        if (newDescription != null && !newDescription.equals(""))
-            project.setDescription(newDescription);
+                                 @RequestParam(required = false) String newDescription,
+                                 @AuthenticationPrincipal User user,
+                                 HttpServletResponse response) throws IOException {
+       if(checkProjectAndUser(project, user, response)) return null;
+        if (newName != null && !newName.equals("")) project.setProjectName(newName);
+        if (newDescription != null && !newDescription.equals("")) project.setDescription(newDescription);
         projectRepository.save(project);
         return project;
     }
 
     @DeleteMapping("/delete")
-    public void deleteProject(@RequestParam long id) {
+    public void deleteProject(@RequestParam long id, @AuthenticationPrincipal User user, HttpServletResponse response) throws IOException {
         Project project = projectRepository.findById(id);
-        if (project != null)
-            projectRepository.delete(project);
+        if (project == null) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project not fount");
+            return;
+        }
+        if (project.getAuthor().getId() != user.getId()) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied!");
+        } else projectRepository.delete(project);
     }
 
     @PostMapping("/add")
-    public Project addProject(@RequestBody Project project, @RequestParam long author_id, @RequestParam long lang_id) {
-        return projectService.addProject(project, author_id, lang_id);
+    public Project addProject(@RequestBody Project project, @AuthenticationPrincipal User user, @RequestParam long lang_id) {
+        return projectService.addProject(project, user.getId(), lang_id);
     }
 
     @PostMapping("/{id}/language/add")
-    public ProjectLang addProjectLang(@PathVariable("id") Project project, @RequestParam long lang_id, HttpServletResponse response) throws IOException {
+    public ProjectLang addProjectLang(@PathVariable("id") Project project, @AuthenticationPrincipal User user,
+                                      @RequestParam long lang_id, HttpServletResponse response) throws IOException {
+        if (accessDenied(project, user, true)) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied!");
+            return null;
+        }
         return projectService.addProjectLang(project, lang_id, response);
     }
 
     @PostMapping("/language/delete")
-    public void deleteProjectLang(@RequestBody long id, HttpServletResponse response) throws IOException {
-        if (projectLangRepository.findById(id).isDefault()) {
+    public void deleteProjectLang(@RequestBody long id, @AuthenticationPrincipal User user,
+                                  HttpServletResponse response) throws IOException {
+        ProjectLang lang = projectLangRepository.findById(id);
+        if (lang == null) response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project not found");
+        else if (accessDenied(projectRepository.findById((long) lang.getProjectId()), user, true)) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied!");
+        } else if (lang.isDefault()) {
             response.sendError(HttpServletResponse.SC_BAD_GATEWAY, "You cannot delete default lang!");
-        } else if (projectLangRepository.findById(id) != null)
-            projectLangRepository.deleteById(id);
+        } else projectLangRepository.deleteById(id);
     }
 
     @PostMapping("/{id}/add/contributor")
@@ -105,9 +126,15 @@ public class ProjectController {
     }
 
     @PostMapping("/delete/contributor")
-    public boolean deleteContributor(@RequestBody long id, HttpServletResponse response) throws IOException {
-        if (contributorRepository.findById(id) == null) {
+    public boolean deleteContributor(@RequestBody long id, @AuthenticationPrincipal User user,
+                                     HttpServletResponse response) throws IOException {
+        ProjectContributor contributor = contributorRepository.findById(id);
+        if (contributor == null) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "Contributor not found!");
+            return false;
+        }
+        if (projectRepository.findById(contributor.getProject()).getAuthor().getId() != user.getId()) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied!");
             return false;
         }
         contributorRepository.deleteById(id);
@@ -115,19 +142,62 @@ public class ProjectController {
     }
 
     @PostMapping("/{id}/add/term")
-    public Term addTermToProject(@PathVariable("id") Project project, @RequestBody String term, HttpServletResponse response) throws IOException {
-        return projectService.addTerm(project, term, response);
+    public Project addTermToProject(@PathVariable("id") Project project, @RequestBody String term, HttpServletResponse response,
+                                    @AuthenticationPrincipal User user,
+                                    @PageableDefault(sort = {"id"}, direction = Sort.Direction.ASC) Pageable page) throws IOException {
+        if(checkProjectAndUser(project, user, response)) return null;
+        projectService.addTerm(project, term, response);
+        project = projectRepository.findById((long) project.getId());
+        project.setContributors(null);
+        project.setProjectLangs(null);
+        setTermPagesCount(project);
+        project.setTermsCount(project.getTerms().size());
+        project.setTerms(termRepository.findByProjectId(project.getId(), page));
+        return project;
+    }
+
+    @GetMapping("/{id}/terms/pages-count")
+    public long getPagesCount(@PathVariable("id") Project project, HttpServletResponse response) throws IOException {
+        if (project == null) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return -1;
+        }
+        setTermPagesCount(project);
+        return project.getPagesCount();
+    }
+
+    private void setTermPagesCount(Project project) {
+        int tail = 0;
+        if (project.getTerms().size() % 10 != 0) tail += 1;
+        project.setPagesCount(project.getTerms().size() / 10 + tail);
     }
 
     @PostMapping("/{id}/delete/term")
-    public void deleteTerm(@PathVariable("id") Project project, @RequestBody long term_id, HttpServletResponse response) throws IOException {
+    public List<Term> deleteTerm(@PathVariable("id") Project project, @RequestBody long term_id, HttpServletResponse response,
+                                 @AuthenticationPrincipal User user,
+                                 @PageableDefault(sort = {"id"}, direction = Sort.Direction.ASC) Pageable page) throws IOException {
+        if(checkProjectAndUser(project, user, response)) return null;
         projectService.deleteTermFromProject(project, term_id, response);
+        return termRepository.findByProjectId(project.getId(), page);
+    }
+
+    @PostMapping("/{id}/delete-selected")
+    public List<Term> deleteSelected(@PathVariable("id") Project project, HttpServletResponse response,
+                                     @RequestBody Project proj, @AuthenticationPrincipal User user,
+                                     @PageableDefault(sort = {"id"}, direction = Sort.Direction.ASC) Pageable page) throws IOException {
+        if(checkProjectAndUser(project, user, response)) return null;
+        for (Term term : proj.getTerms()) {
+            if (term.isSelected())
+                projectService.deleteTermFromProject(project, term.getId(), response);
+        }
+        return termRepository.findByProjectId(project.getId(), page);
     }
 
     @DeleteMapping("/flush")
-    public void flush(@RequestParam long id, HttpServletResponse response) throws IOException {
+    public void flush(@RequestParam long id, @AuthenticationPrincipal User user, HttpServletResponse response) throws IOException {
         Project project = projectRepository.findById(id);
-        projectService.flush(project, response);
+        if(checkProjectAndUser(project, user, response)) return;
+        projectService.flush(project, user, response);
     }
 
     @GetMapping("/{userId}/projects")
@@ -139,12 +209,8 @@ public class ProjectController {
         return projectRepository.findByAuthor(user);
     }
 
-    @GetMapping("/{userId}/contributions")
-    public List<Project> getUserContributions(@PathVariable("userId") User user, HttpServletResponse response) throws IOException {
-        if (user == null) {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND, "User not found");
-            return null;
-        }
+    @GetMapping("/contributions")
+    public List<Project> getUserContributions(@AuthenticationPrincipal User user, HttpServletResponse response) throws IOException {
         List<Project> projects = projectRepository.findAll();
         return projects.stream()
                 .filter(a -> a.getContributors().stream().anyMatch(b -> b.getContributor().getId() == user.getId()))
@@ -168,7 +234,11 @@ public class ProjectController {
     public List<ProjectLang> importTerms(@PathVariable("id") Project project, MultipartFile file,
                                          @RequestParam boolean import_values, HttpServletResponse response,
                                          @RequestParam(required = false) Long projLangId) throws IOException {
-        if(file == null){
+        if (project == null) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project not found");
+            return null;
+        }
+        if (file == null) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Choose file!");
             return null;
         }
@@ -182,7 +252,7 @@ public class ProjectController {
     @GetMapping("/{id}/sort")
     public List<ProjectLang> sortProjectLangs(@PathVariable("id") Project project, HttpServletResponse response,
                                               @RequestParam(required = false) String sort_state) throws IOException {
-        if(project == null){
+        if (project == null) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project not found!");
             return null;
         }
@@ -193,13 +263,15 @@ public class ProjectController {
     public List<Project> doFilter(@RequestParam(required = false) String name,
                                   @RequestParam(required = false) String term,
                                   @RequestParam(required = false) String contributorName,
-                                  @RequestParam(required = false) String sort_state) {
-        return projectService.doFilter(term, contributorName, name, sort_state);
+                                  @RequestParam(required = false) String sort_state,
+                                  @RequestParam boolean contributions,
+                                  @AuthenticationPrincipal User user) {
+        return projectService.doFilter(user, term, contributorName, name, sort_state, contributions);
     }
 
     @PostMapping("/{id}/notify")
     public void notify(@PathVariable("id") Project project, @RequestBody String message, HttpServletResponse response) throws IOException {
-        if(project == null){
+        if (project == null) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project not found!");
             return;
         }
@@ -207,12 +279,37 @@ public class ProjectController {
     }
 
     @GetMapping("/{id}/name")
-    public String getName(@PathVariable("id") Project project, HttpServletResponse response) throws IOException {
-        if(project == null){
+    public HashMap<String, String> getName(@PathVariable("id") Project project, HttpServletResponse response) throws IOException {
+        if (project == null) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project not found!");
             return null;
         }
-        return project.getProjectName();
+        HashMap<String, String> map = new HashMap<>();
+        map.put("key",project.getProjectName());
+        return map;
+    }
+
+    private boolean checkProjectAndUser(Project project, User user, HttpServletResponse response) throws IOException{
+        if(project == null){
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project not found!");
+            return true;
+        }
+        if(accessDenied(project, user, true)){
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied!");
+            return true;
+        }
+        return false;
+    }
+
+    private boolean accessDenied(Project project, User user, boolean checkRole) {
+        boolean isForbidden = true;
+        if (!checkRole) {
+            if (project.getContributors().stream().anyMatch(a -> a.getContributor().getId() == user.getId()))
+                isForbidden = false;
+        } else if (project.getContributors().stream().anyMatch(a -> a.getContributor().getId() == user.getId() && a.getRole().name().equals("MODERATOR")))
+            isForbidden = false;
+        if (project.getAuthor().getId() == user.getId()) isForbidden = false;
+        return isForbidden;
     }
 
 }

@@ -1,8 +1,8 @@
 package ILocal.repository;
 
+
 import ILocal.entity.Term;
 import ILocal.entity.TermLang;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.CrudRepository;
 

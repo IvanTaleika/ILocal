@@ -1,20 +1,24 @@
 package ILocal.controller;
 
-
 import ILocal.entity.User;
 import ILocal.repository.ProjectRepository;
 import ILocal.repository.UserRepository;
+import ILocal.security.JwtGenerator;
 import ILocal.service.MailService;
 import ILocal.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 @CrossOrigin(origins = "http://localhost:4200", maxAge = 3600)
 @RequestMapping("/user")
 @RestController
 public class UserController {
+
+    @Autowired
+    private JwtGenerator jwtGenerator;
 
     @Autowired
     private MailService mailService;
@@ -39,29 +43,13 @@ public class UserController {
     }
 
     @PutMapping("/{id}/update")
-    public void updateUser(@PathVariable("id") User user, @RequestBody User editUser) {
+    public void updateUser(@PathVariable("id") User user, @RequestBody User editUser) throws NoSuchAlgorithmException {
         userService.updateUser(user, editUser);
     }
 
     @GetMapping("/activate/{code}")
     public boolean activate(@PathVariable String code) {
         return userService.activateUser(code);
-    }
-
-    @PostMapping("/registration")
-    public boolean addUser(@RequestBody User user) {
-        return userService.registrationUser(user);
-    }
-
-    @PostMapping("/login")
-    public User login(@RequestBody User user) {
-        User existUser = userRepository.findByUsernameAndPassword(user.getUsername(),
-                user.getPassword());
-        if (existUser != null) {
-            existUser.setPassword("");
-            return existUser;
-        }
-        return null;
     }
 
     @DeleteMapping("/delete")

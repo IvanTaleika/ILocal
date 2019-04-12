@@ -1,6 +1,5 @@
 package ILocal.controller;
 
-
 import ILocal.entity.Lang;
 import ILocal.repository.LangRepository;
 import org.springframework.beans.factory.annotation.Autowired;

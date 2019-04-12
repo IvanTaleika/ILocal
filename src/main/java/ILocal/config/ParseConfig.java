@@ -1,6 +1,5 @@
 package ILocal.config;
 
-
 import ILocal.service.ParseFile;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
