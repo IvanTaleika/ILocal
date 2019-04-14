@@ -1,7 +1,10 @@
 package ILocal.entity;
 
 
+
 import javax.persistence.*;
+import java.util.List;
+import java.util.Optional;
 
 @Entity
 @Table(name = "project_contributor")

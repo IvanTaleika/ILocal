@@ -1,14 +1,18 @@
 package ILocal.service;
 
+
 import ILocal.entity.*;
 import ILocal.repository.*;
-import java.io.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.sql.Date;
 import java.util.*;
 import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 @Service
 public class ProjectLangService {
@@ -58,9 +62,7 @@ public class ProjectLangService {
                         a.setModifiedDate(new Date(Calendar.getInstance().getTime().getTime()));
                         EnumSet<BitFlagService.StatusFlag> enumSet = bitFlagService.getStatusFlags(a.getStatus());
                         if (enumSet.contains(BitFlagService.StatusFlag.DEFAULT_WAS_CHANGED)) {
-                            a.setStatus(
-                                a.getStatus() - BitFlagService.StatusFlag.DEFAULT_WAS_CHANGED
-                                    .getValue());
+                            a.setStatus(a.getStatus() - BitFlagService.StatusFlag.DEFAULT_WAS_CHANGED.getValue());
                         }
                     }
                 });
@@ -101,16 +103,14 @@ public class ProjectLangService {
     }
 
     public List<TermLang> search(List<TermLang> termLangs, String term) {
-        if (term == null) {
-            return termLangs;
-        }
+        if (term == null) return termLangs;
         return termLangs.stream()
                 .filter(a -> a.getTerm().getTermValue().toLowerCase().contains(term.toLowerCase()))
                 .collect(Collectors.toList());
     }
 
     public ProjectLang doFilter(ProjectLang projectLang, String term,
-        Boolean untranslated, Boolean fuzzy, String order_state, int page) {
+                                Boolean untranslated, Boolean fuzzy, String order_state, int page) {
         List<TermLang> langs = projectLang.getTermLangs();
         setCounts(projectLang);
         langs = search(langs, term);
@@ -120,24 +120,16 @@ public class ProjectLangService {
         setPagesCount(projectLang);
         if (!langs.isEmpty()) {
             int maxPage = langs.size() / 10 - 1;
-            if (langs.size() % 10 != 0) {
-                maxPage += 1;
-            }
-            if (page > maxPage) {
-                page = maxPage;
-            }
+            if (langs.size() % 10 != 0) maxPage += 1;
+            if (page > maxPage) page = maxPage;
             int last = 0;
-            if (page == maxPage) {
-                last = langs.size();
-            } else {
-                last = (page + 1) * 10;
-            }
+            if (page == maxPage) last = langs.size();
+            else last = (page+1) * 10;
             langs = langs.subList(page * 10, last);
             setFlags(langs);
             projectLang.setTermLangs(langs);
         }
-        projectLang.setProjectName(
-            projectRepository.findById((long) projectLang.getProjectId()).getProjectName());
+        projectLang.setProjectName(projectRepository.findById((long) projectLang.getProjectId()).getProjectName());
         return projectLang;
     }
 
@@ -154,9 +146,8 @@ public class ProjectLangService {
 
     public File createPropertiesFile(ProjectLang projectLang) throws IOException {
         Project project = projectRepository.findById((long) projectLang.getProjectId());
-        File file = new File(
-            project.getProjectName() + "_" + projectLang.getLang().getLangDef() + ".properties");
-        PrintWriter pw2 = new PrintWriter(file, "windows-1251");
+        File file = new File(project.getProjectName() + "_" + projectLang.getLang().getLangDef() + ".properties");
+        PrintWriter pw2 = new PrintWriter(file, "UTF-8");
         projectLang.getTermLangs().forEach(term -> {
             pw2.write(term.getTerm().getTermValue() + "=" + term.getValue());
             pw2.write("\n");
@@ -195,18 +186,14 @@ public class ProjectLangService {
         projectLang.setTermsCount(projectLang.getTermLangs().size());
         long translatedCount = 0;
         for (TermLang termLang : projectLang.getTermLangs()) {
-            if (!termLang.getValue().equals("")) {
-                translatedCount++;
-            }
+            if (!termLang.getValue().equals("")) translatedCount++;
         }
         projectLang.setTranslatedCount(translatedCount);
     }
 
     public void setPagesCount(ProjectLang projectLang) {
         int tail = 0;
-        if (projectLang.getTermLangs().size() % 10 != 0) {
-            tail += 1;
-        }
+        if (projectLang.getTermLangs().size() % 10 != 0) tail += 1;
         projectLang.setPagesCount(projectLang.getTermLangs().size() / 10 + tail);
     }
 }

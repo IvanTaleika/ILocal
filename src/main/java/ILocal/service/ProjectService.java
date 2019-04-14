@@ -2,15 +2,16 @@ package ILocal.service;
 
 import ILocal.entity.*;
 import ILocal.repository.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
+import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Date;
 import java.util.*;
 import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 @Service
 public class ProjectService {
@@ -125,12 +126,9 @@ public class ProjectService {
     }
 
     public Term addTerm(Project project, String termValue, HttpServletResponse response) throws IOException {
-        if(project == null){
-            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project not found!");
-            return null;
-        }
         if(termValue.equals("")){
             response.sendError(HttpServletResponse.SC_BAD_GATEWAY, "Term value is empty. Enter value!");
+            return null;
         }
         for (Term trm : project.getTerms()) {
             if (trm.getTermValue().equals(termValue)){
@@ -152,6 +150,7 @@ public class ProjectService {
             termLang.setProjectLangId(projectLang.getId());
             termLangRepository.save(termLang);
         }
+        project.getTerms().add(term);
         return term;
     }
 
@@ -179,9 +178,13 @@ public class ProjectService {
         }
     }
 
-    public void flush(Project project, HttpServletResponse response) throws IOException{
+    public void flush(Project project, User user, HttpServletResponse response) throws IOException{
         if (project == null) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project not found");
+            return;
+        }
+        if (project.getAuthor().getId() == user.getId()) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied");
             return;
         }
         Iterator<Term> termIterator = project.getTerms().iterator();
@@ -201,33 +204,38 @@ public class ProjectService {
         }
     }
 
-    public List<Project> searchByName(String name) {
-        return projectRepository.findAll().stream()
+    public List<Project> searchByName(List<Project> projects,String name) {
+        return projects.stream()
                 .filter(a -> a.getProjectName().toLowerCase().contains(name.toLowerCase()))
                 .collect(Collectors.toList());
     }
 
-    public List<Project> searchByTerm(String term) {
-        return projectRepository.findAll().stream()
+    public List<Project> searchByTerm(List<Project> projects,String term) {
+        return projects.stream()
                 .filter(a -> a.getTerms().stream().anyMatch(b -> b.getTermValue().toLowerCase().contains(term.toLowerCase())))
                 .collect(Collectors.toList());
     }
 
-    public List<Project> searchByContributor(String contributorName) {
-        return projectRepository.findAll().stream()
+    public List<Project> searchByContributor(List<Project> projects, String contributorName) {
+        return projects.stream()
                 .filter(a -> a.getContributors().stream().anyMatch(b -> b.getContributor().getUsername()
                         .toLowerCase().contains(contributorName.toLowerCase()))).collect(Collectors.toList());
     }
 
-    public List<Project> doFilter(String term,
-                                  String contributorName, String name, String order_state) {
-        List<Project> projectList = projectRepository.findAll();
+    public List<Project> doFilter(User user, String term,
+                                  String contributorName, String name, String order_state, boolean contr) {
+        List<Project> projectList;
+        if(contr){
+            projectList = projectRepository.findAll().stream()
+                    .filter(a -> a.getContributors().stream().anyMatch(b -> b.getContributor().getId() == user.getId()))
+                    .collect(Collectors.toList());
+        }else projectList = projectRepository.findByAuthor(user);
         if (term != null && !term.equals(""))
-            projectList = searchByTerm(term);
+            projectList = searchByTerm(projectList, term);
         else if (name != null && !name.equals(""))
-            projectList = searchByName(name);
+            projectList = searchByName(projectList, name);
         else if (contributorName != null && !contributorName.equals(""))
-            projectList = searchByContributor(contributorName);
+            projectList = searchByContributor(projectList, contributorName);
         return sortUserProjects(projectList, order_state);
     }
 

@@ -1,16 +1,19 @@
 package ILocal.controller;
 
 
-import ILocal.entity.TermLang;
+import ILocal.entity.*;
 import ILocal.repository.*;
 import ILocal.service.BitFlagService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.Date;
 import java.util.Calendar;
+import java.util.EnumSet;
 import java.util.List;
-import javax.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin(origins = "http://localhost:4200", maxAge = 3600)
 @RestController
@@ -27,6 +30,9 @@ public class TermLangController {
     private ProjectLangRepository projectLangRepository;
 
     @Autowired
+    private ProjectRepository projectRepository;
+
+    @Autowired
     private BitFlagService bitFlagService;
 
     @GetMapping
@@ -38,9 +44,14 @@ public class TermLangController {
     public void updateValue(@PathVariable("id") TermLang termLang,
                             @RequestBody(required = false) String newVal,
                             @RequestParam(required = false) long writer_id,
+                            @AuthenticationPrincipal User user,
                             HttpServletResponse response) throws IOException {
         if (termLang == null) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Term lang is not found!");
+            return;
+        }
+        if (accessDenied(termLang, user)) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied!");
             return;
         }
         if (newVal == null) {
@@ -59,7 +70,7 @@ public class TermLangController {
             List<TermLang> termLangs = termLangRepository.findByTerm(termLang.getTerm());
             termLangs.remove(termLang);
             termLangs.forEach(a -> {
-                if (!bitFlagService.isContainsFlag(a.getStatus(), BitFlagService.StatusFlag.DEFAULT_WAS_CHANGED))
+                if (!bitFlagService.isContainsFlag(a.getStatus(), BitFlagService.StatusFlag.DEFAULT_WAS_CHANGED) && !a.getValue().equals(""))
                     bitFlagService.addFlag(a, BitFlagService.StatusFlag.DEFAULT_WAS_CHANGED);
             });
         } else {
@@ -70,18 +81,32 @@ public class TermLangController {
     }
 
     @PutMapping("/{id}/fuzzy")
-    public void fuzzy(@PathVariable("id") TermLang termLang, @RequestParam Boolean fuzzy, HttpServletResponse response) throws IOException {
+    public void fuzzy(@PathVariable("id") TermLang termLang, @AuthenticationPrincipal User user,
+                      @RequestParam Boolean fuzzy, HttpServletResponse response) throws IOException {
         if (termLang == null) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Term lang is not found!");
             return;
         }
+        if (accessDenied(termLang, user)) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied");
+            return;
+        }
         if (fuzzy != null && fuzzy) {
             if (!bitFlagService.isContainsFlag(termLang.getStatus(), BitFlagService.StatusFlag.FUZZY))
-               bitFlagService.addFlag(termLang, BitFlagService.StatusFlag.FUZZY);
+                bitFlagService.addFlag(termLang, BitFlagService.StatusFlag.FUZZY);
         } else if (fuzzy != null) {
             if (bitFlagService.isContainsFlag(termLang.getStatus(), BitFlagService.StatusFlag.FUZZY))
                 bitFlagService.dropFlag(termLang, BitFlagService.StatusFlag.FUZZY);
         }
         termLangRepository.save(termLang);
+    }
+
+    private boolean accessDenied(TermLang term, User user) {
+        boolean isDenied = true;
+        Project project = projectRepository.findById((long) term.getTerm().getProjectId());
+        if (project.getContributors().stream().anyMatch(a -> a.getContributor().getId() == user.getId()))
+            isDenied = false;
+        if (project.getAuthor().getId() == user.getId()) isDenied = false;
+        return isDenied;
     }
 }

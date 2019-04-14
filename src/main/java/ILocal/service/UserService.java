@@ -2,20 +2,25 @@ package ILocal.service;
 
 import ILocal.entity.User;
 import ILocal.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
+import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.*;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 @Service
 public class UserService implements UserDetailsService {
 
     @Autowired
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
+    private PasswordEncoderMD5 passwordEncoderMD5;
 
     @Autowired
     private ParseFile parseFile;
@@ -26,7 +31,7 @@ public class UserService implements UserDetailsService {
     @Autowired
     private UserRepository userRepository;
 
-    public void updateUser(User user, User editUser) {
+    public void updateUser(User user, User editUser) throws NoSuchAlgorithmException {
         user.setCompany(editUser.getCompany());
         if (!editUser.getEmail().equals(user.getEmail()) &&
                 !StringUtils.isEmpty(editUser.getEmail()) &&
@@ -34,7 +39,7 @@ public class UserService implements UserDetailsService {
             sendActivationLinkToEmail(editUser);
             user.setActivationCode(editUser.getActivationCode());
         }
-        user.setPassword(bCryptPasswordEncoder.encode(editUser.getPassword()));
+        user.setPassword(passwordEncoderMD5.createPassword(editUser.getPassword()));
         user.setEmail(editUser.getEmail());
         user.setFirstName(editUser.getFirstName());
         user.setLastName(editUser.getLastName());
@@ -42,7 +47,7 @@ public class UserService implements UserDetailsService {
         userRepository.save(user);
     }
 
-    public boolean registrationUser(User user) {
+    public boolean registrationUser(User user) throws NoSuchAlgorithmException {
         User userFromDb = userRepository.findByUsername(user.getUsername());
         if (userFromDb != null) {
             return false;
@@ -50,7 +55,7 @@ public class UserService implements UserDetailsService {
         if (!StringUtils.isEmpty(user.getEmail()) && checkEmail(user.getEmail())) {
             sendActivationLinkToEmail(user);
         }
-        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+        user.setPassword(passwordEncoderMD5.createPassword(user.getPassword()));
         userRepository.save(user);
         return true;
     }
@@ -80,6 +85,12 @@ public class UserService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository.findByUsername(username);
+        User user = userRepository.findByUsername(username);
+
+        if (user == null) {
+            throw new UsernameNotFoundException("User not found");
+        }
+
+        return user;
     }
 }

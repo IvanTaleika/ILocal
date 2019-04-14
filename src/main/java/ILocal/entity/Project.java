@@ -1,11 +1,14 @@
 package ILocal.entity;
 
+import org.hibernate.annotations.*;
+
+import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
-import javax.persistence.*;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
 
 @Entity
 @Table(name="project")
@@ -36,10 +39,10 @@ public class Project {
     @Fetch(value = FetchMode.SUBSELECT)
     private List<Term> terms =  new ArrayList<>();
 
-  @Transient
-  private long termsCount;
-  @Transient
-  private long pagesCount;
+    @Transient
+    private long termsCount;
+    @Transient
+    private long pagesCount;
 
     public Project(){}
 
@@ -115,19 +118,19 @@ public class Project {
         this.terms = terms;
     }
 
-  public long getTermsCount() {
-    return termsCount;
-  }
+    public long getTermsCount() {
+        return termsCount;
+    }
 
-  public void setTermsCount(long termsCount) {
-    this.termsCount = termsCount;
-  }
+    public void setTermsCount(long termsCount) {
+        this.termsCount = termsCount;
+    }
 
-  public long getPagesCount() {
-    return pagesCount;
-  }
+    public long getPagesCount() {
+        return pagesCount;
+    }
 
-  public void setPagesCount(long pagesCount) {
-    this.pagesCount = pagesCount;
-  }
+    public void setPagesCount(long pagesCount) {
+        this.pagesCount = pagesCount;
+    }
 }

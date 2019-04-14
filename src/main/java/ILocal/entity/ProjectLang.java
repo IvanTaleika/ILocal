@@ -1,11 +1,15 @@
 package ILocal.entity;
 
-import java.util.ArrayList;
-import java.util.List;
-import javax.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 import org.springframework.data.domain.Persistable;
+
+import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "project_lang")
@@ -30,15 +34,15 @@ public class ProjectLang implements Persistable {
 
     private boolean isDefault;
 
-  @Transient
-  private long termsCount;
-  @Transient
-  private long translatedCount;
-  @Transient
-  private long pagesCount;
+    @Transient
+    private long termsCount;
+    @Transient
+    private long translatedCount;
+    @Transient
+    private long pagesCount;
 
-  public ProjectLang() {
-  }
+    public ProjectLang() {
+    }
 
     public Long getId() {
         return id;
@@ -93,27 +97,27 @@ public class ProjectLang implements Persistable {
         return true;
     }
 
-  public long getTermsCount() {
-    return termsCount;
-  }
+    public long getTermsCount() {
+        return termsCount;
+    }
 
-  public void setTermsCount(long termsCount) {
-    this.termsCount = termsCount;
-  }
+    public void setTermsCount(long termsCount) {
+        this.termsCount = termsCount;
+    }
 
-  public long getTranslatedCount() {
-    return translatedCount;
-  }
+    public long getTranslatedCount() {
+        return translatedCount;
+    }
 
-  public void setTranslatedCount(long translatedCount) {
-    this.translatedCount = translatedCount;
-  }
+    public void setTranslatedCount(long translatedCount) {
+        this.translatedCount = translatedCount;
+    }
 
-  public long getPagesCount() {
-    return pagesCount;
-  }
+    public long getPagesCount() {
+        return pagesCount;
+    }
 
-  public void setPagesCount(long pagesCount) {
-    this.pagesCount = pagesCount;
-  }
+    public void setPagesCount(long pagesCount) {
+        this.pagesCount = pagesCount;
+    }
 }

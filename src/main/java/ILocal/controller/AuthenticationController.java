@@ -1,63 +1,61 @@
 package ILocal.controller;
 
+
 import ILocal.entity.JwtUser;
 import ILocal.entity.User;
 import ILocal.repository.UserRepository;
 import ILocal.security.JwtGenerator;
 import ILocal.service.*;
-import java.io.IOException;
-import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+
 @CrossOrigin(origins = "http://localhost:4200", maxAge = 3600)
 @RestController
+@RequestMapping("/auth")
 public class AuthenticationController {
 
-  @Autowired
-  private UserRepository userRepository;
+    @Autowired
+    private PasswordEncoderMD5 passwordEncoderMD5;
 
-  @Autowired
-  private UserService userService;
+    @Autowired
+    private UserRepository userRepository;
 
-  @Autowired
-  private JwtGenerator jwtGenerator;
+    @Autowired
+    private UserService userService;
 
-  @Autowired
-  private ValidatorService validatorService;
+    @Autowired
+    private JwtGenerator jwtGenerator;
 
-  @Autowired
-  private ResponseService responseService;
+    @Autowired
+    private ValidatorService validatorService;
 
-  @PostMapping("/registration")
-  public String addUser(@RequestBody User user, HttpServletResponse response) throws IOException {
-    if (validatorService.validateUsername(user.getUsername())) {
-      responseService.sendBadRequest(response);
-      return null;
+    @Autowired
+    private ResponseService responseService;
+
+    @PostMapping("/registration")
+    public String addUser(@RequestBody User user, HttpServletResponse response) throws IOException, NoSuchAlgorithmException {
+        userService.registrationUser(user);
+        JwtUser jwtUser = new JwtUser(user.getId(), user.getUsername());
+        return jwtGenerator.generate(jwtUser);
     }
-    if (validatorService.validatePassword(user.getPassword())) {
-      responseService.sendBadRequest(response);
-      return null;
-    }
-    if (validatorService.validateEmail(user.getEmail())) {
-      responseService.sendBadRequest(response);
-      return null;
-    }
-    userService.registrationUser(user);
-    JwtUser jwtUser = new JwtUser(user.getId(), user.getUsername());
-    return jwtGenerator.generate(jwtUser);
-  }
 
-  @PostMapping("/login")
-  public String login(@RequestBody User user, HttpServletResponse response) throws IOException {
-    User existUser = userRepository
-        .findByUsernameAndPassword(user.getUsername(), user.getPassword());
-    if (existUser != null) {
-      existUser.setPassword("");
-      JwtUser jwtUser = new JwtUser(existUser.getId(), existUser.getUsername());
-      return jwtGenerator.generate(jwtUser);
+    @PostMapping("/login")
+    public HashMap<String, String> login(@RequestBody User user, HttpServletResponse response) throws IOException, NoSuchAlgorithmException {
+        User existUser = (User) userService.loadUserByUsername(user.getUsername());
+        if (userRepository.findByEmail(user.getUsername()) != null)
+            existUser = userRepository.findByEmail(user.getUsername());
+        HashMap<String, String> token = new HashMap<>();
+        if (existUser != null && existUser.getPassword().equals(passwordEncoderMD5.createPassword(user.getPassword()))) {
+            JwtUser jwtUser = new JwtUser(existUser.getId(), existUser.getUsername());
+            token.put("Token", jwtGenerator.generate(jwtUser));
+            return token;
+        }
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Incorrect login or password");
+        return null;
     }
-    response.sendError(HttpServletResponse.SC_NOT_FOUND, "User not found!");
-    return null;
-  }
 }

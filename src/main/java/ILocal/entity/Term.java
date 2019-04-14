@@ -1,7 +1,9 @@
 package ILocal.entity;
 
-import java.util.*;
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "term")
@@ -16,6 +18,9 @@ public class Term {
 
     @Transient
     private List<TermLang> translations = new ArrayList<>();
+
+    @Transient
+    private boolean selected = false;
 
     public Term(){}
 
@@ -62,5 +67,13 @@ public class Term {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    public boolean isSelected() {
+        return selected;
+    }
+
+    public void setSelected(boolean selected) {
+        this.selected = selected;
     }
 }

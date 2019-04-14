@@ -7,9 +7,11 @@ import ILocal.repository.UserRepository;
 import ILocal.security.JwtGenerator;
 import ILocal.service.MailService;
 import ILocal.service.UserService;
-import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.security.NoSuchAlgorithmException;
+import java.util.List;
 
 @CrossOrigin(origins = "http://localhost:4200", maxAge = 3600)
 @RequestMapping("/user")
@@ -42,7 +44,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}/update")
-    public void updateUser(@PathVariable("id") User user, @RequestBody User editUser) {
+    public void updateUser(@PathVariable("id") User user, @RequestBody User editUser) throws NoSuchAlgorithmException {
         userService.updateUser(user, editUser);
     }
 
