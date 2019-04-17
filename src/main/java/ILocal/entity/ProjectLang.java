@@ -25,7 +25,7 @@ public class ProjectLang implements Persistable {
     @JoinColumn(name = "lang_id")
     private Lang lang;
 
-    @OneToMany(mappedBy = "projectLangId", cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "projectLangId",  fetch = FetchType.EAGER)
     @Fetch(value = FetchMode.SUBSELECT)
     private List<TermLang> termLangs = new ArrayList<>();
 

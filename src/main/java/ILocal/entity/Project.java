@@ -1,9 +1,11 @@
 package ILocal.entity;
 
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
+import org.hibernate.annotations.*;
 
 import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +31,7 @@ public class Project {
     @Fetch(value = FetchMode.SUBSELECT)
     private List<ProjectContributor> contributors =  new ArrayList<>();
 
-    @OneToMany(mappedBy = "projectId", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "projectId",  fetch = FetchType.EAGER)
     @Fetch(value = FetchMode.SUBSELECT)
     private List<ProjectLang> projectLangs =  new ArrayList<>();
 

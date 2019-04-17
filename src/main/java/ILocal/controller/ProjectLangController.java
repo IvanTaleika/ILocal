@@ -1,13 +1,14 @@
 package ILocal.controller;
 
-
+import ILocal.repository.LangRepository;
+import ILocal.repository.TermLangRepository;
 import ILocal.entity.Project;
 import ILocal.entity.ProjectLang;
 import ILocal.entity.TermLang;
-import ILocal.repository.LangRepository;
+import ILocal.entity.User;
 import ILocal.repository.ProjectLangRepository;
 import ILocal.repository.ProjectRepository;
-import ILocal.repository.TermLangRepository;
+import ILocal.service.AccessService;
 import ILocal.service.BitFlagService;
 import ILocal.service.ProjectLangService;
 import ILocal.service.Translator;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -50,14 +52,18 @@ public class ProjectLangController {
     @Autowired
     private Translator translator;
 
-    @GetMapping
-    public List<ProjectLang> getProjectLangs() {
-        return projectLangRepository.findAll();
-    }
+    @Autowired
+    private AccessService accessService;
+
+//    @GetMapping
+//    public List<ProjectLang> getProjectLangs() {
+//        return projectLangRepository.findAll();
+//    }
 
     @GetMapping("/{id}/project/{projId}")
     public ProjectLang getProjectLang(@PathVariable("id") ProjectLang projectLang, HttpServletResponse response,
                                       @PathVariable("projId") Project project,
+                                      @AuthenticationPrincipal User user,
                                       @PageableDefault(sort = {"id"}, direction = Sort.Direction.ASC) Pageable page) throws IOException {
         if (project == null || projectLang == null) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "Cannot find project or project lang!");
@@ -65,6 +71,10 @@ public class ProjectLangController {
         }
         if (!project.getProjectLangs().contains(projectLang)) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Project hasn't contain project lang!");
+            return null;
+        }
+        if (accessService.accessDenied(project, user, false)) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied!");
             return null;
         }
         projectLangService.setPagesCount(projectLang);
@@ -109,16 +119,16 @@ public class ProjectLangController {
 
     @PutMapping("/{id}/update-lang")
     public ProjectLang updateLang(@PathVariable("id") ProjectLang projectLang, @RequestParam long id,
+                                  @AuthenticationPrincipal User user,
                                   HttpServletResponse response) throws IOException {
+        if(accessService.isNotProjectLangOrAccessDenied(projectLang, user, response, true)) return null;
         return projectLangService.updateLang(projectLang, id, response);
     }
 
     @PostMapping("/{id}/empty")
-    public void empty(@PathVariable("id") ProjectLang projectLang, @RequestBody ProjectLang newLang, HttpServletResponse response) throws IOException {
-        if (projectLang == null) {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project lang not found");
-            return;
-        }
+    public void empty(@PathVariable("id") ProjectLang projectLang, @AuthenticationPrincipal User user,
+                      @RequestBody ProjectLang newLang, HttpServletResponse response) throws IOException {
+        if(accessService.isNotProjectLangOrAccessDenied(projectLang, user, response, true)) return;
         projectLang.setTermLangs(newLang.getTermLangs());
         projectLang.getTermLangs().forEach(a -> {
             if (a.isSelected()) {
@@ -137,8 +147,10 @@ public class ProjectLangController {
 
     @PostMapping("/{id}/import-translations")
     public ProjectLang importTranslations(@PathVariable("id") ProjectLang projectLang, MultipartFile file,
+                                          @AuthenticationPrincipal User user,
                                           @PageableDefault(sort = {"id"}, direction = Sort.Direction.ASC) Pageable page,
                                           HttpServletResponse response) throws IOException {
+        if(accessService.isNotProjectLangOrAccessDenied(projectLang, user, response, false)) return null;
         if (file == null) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "File not chosen, Choose the file!");
             return null;
@@ -163,17 +175,17 @@ public class ProjectLangController {
                                 @RequestParam(required = false) Boolean untranslated,
                                 @RequestParam(required = false) Boolean fuzzy,
                                 @RequestParam(required = false) String sort_state,
+                                @AuthenticationPrincipal User user,
                                 @PageableDefault(sort = {"id"}, direction = Sort.Direction.ASC) Pageable page,
                                 HttpServletResponse response) throws IOException {
-        if (projectLang == null) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Project lang not found!");
-            return null;
-        }
+        if(accessService.isNotProjectLangOrAccessDenied(projectLang, user, response, false)) return null;
         return projectLangService.doFilter(projectLang, term, untranslated, fuzzy, sort_state, page.getPageNumber());
     }
 
     @PostMapping("/{id}/flush-translations")
-    public void flushTranslations(@PathVariable("id") ProjectLang projectLang) {
+    public void flushTranslations(@PathVariable("id") ProjectLang projectLang,
+                                  @AuthenticationPrincipal User user, HttpServletResponse response) throws IOException {
+        if(accessService.isNotProjectLangOrAccessDenied(projectLang, user, response, false)) return;
         projectLang.getTermLangs().forEach(a -> a.setValue(""));
         projectLangRepository.save(projectLang);
     }
@@ -183,7 +195,8 @@ public class ProjectLangController {
         if (project == null) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Project lang is not found!");
             return null;
-        }        for (ProjectLang projectLang : project.getProjectLangs()) {
+        }
+        for (ProjectLang projectLang : project.getProjectLangs()) {
             if (projectLang.isDefault()) return projectLang;
         }
         return null;
@@ -192,11 +205,9 @@ public class ProjectLangController {
     @PostMapping("/auto-translate")
     public ProjectLang autoTranslate(@RequestBody ProjectLang projectLang, @RequestParam long from,
                                      HttpServletResponse response,
+                                     @AuthenticationPrincipal User user,
                                      @PageableDefault(sort = {"id"}, direction = Sort.Direction.ASC) Pageable page) throws IOException {
-        if (projectLang == null) {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project lang not found!");
-            return null;
-        }
+        if(accessService.isNotProjectLangOrAccessDenied(projectLang, user, response, false)) return null;
         if (projectLang.getId() == from) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "You cannot choose this lang!");
             return null;
@@ -230,7 +241,7 @@ public class ProjectLangController {
             });
 
         });
-        ProjectLang stats = projectLangRepository.findById((long)projectLang.getId());
+        ProjectLang stats = projectLangRepository.findById((long) projectLang.getId());
         projectLangService.setCounts(stats);
         projectLang.setTranslatedCount(stats.getTranslatedCount());
         projectLang.setTermLangs(projectLangService.setFlags(projectLang.getTermLangs()));
@@ -238,11 +249,10 @@ public class ProjectLangController {
     }
 
     @GetMapping("/{id}/export")
-    public void download(@PathVariable("id") ProjectLang projectLang, HttpServletResponse response) throws IOException {
-        if (projectLang == null) {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project lang not found!");
-            return;
-        }
+    public void download(@PathVariable("id") ProjectLang projectLang,
+                         @AuthenticationPrincipal User user,
+                         HttpServletResponse response) throws IOException {
+        if(accessService.isNotProjectLangOrAccessDenied(projectLang, user, response, false)) return;
         File file = projectLangService.createPropertiesFile(projectLang);
         if (file.exists()) {
             String mimeType = URLConnection.guessContentTypeFromName(file.getName());
@@ -257,4 +267,5 @@ public class ProjectLangController {
             file.delete();
         }
     }
+
 }

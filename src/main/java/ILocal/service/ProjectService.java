@@ -10,10 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Date;
-import java.util.Calendar;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -68,16 +65,16 @@ public class ProjectService {
             return null;
         }
         if (langId == -1) {
-            response.sendError(HttpServletResponse.SC_BAD_GATEWAY, "Choose project lang!");
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Choose project lang!");
             return null;
         }
         if (langRepository.findById(langId) == null) {
-            response.sendError(HttpServletResponse.SC_BAD_GATEWAY, "Incorrect lang!");
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Incorrect lang!");
             return null;
         }
         for (ProjectLang projectLang : project.getProjectLangs()) {
             if (projectLang.getLang().getId() == langId) {
-                response.sendError(HttpServletResponse.SC_BAD_GATEWAY, "Project lang exist!");
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Project lang exist!");
                 return null;
             }
         }
@@ -186,7 +183,7 @@ public class ProjectService {
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project not found");
             return;
         }
-        if (project.getAuthor().getId() == user.getId()) {
+        if (project.getAuthor().getId() != user.getId()) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied");
             return;
         }
@@ -249,7 +246,7 @@ public class ProjectService {
                 Term term = new Term();
                 term.setProjectId(project.getId());
                 term.setTermValue(key);
-                termRepository.save(term);
+                //termRepository.save(term);
                 project.getTerms().add(term);
                 for (ProjectLang projectLang : project.getProjectLangs()) {
                     TermLang termLang = new TermLang();
@@ -263,9 +260,12 @@ public class ProjectService {
                     termLang.setLang(projectLang.getLang());
                     termLangRepository.save(termLang);
                     projectLang.getTermLangs().add(termLang);
-                    projectLangRepository.save(projectLang);
+                    //projectLangRepository.save(projectLang);
                 }
             }
+        }
+        for (ProjectLang  lang : project.getProjectLangs()) {
+            projectLangRepository.save(lang);
         }
         file.delete();
         projectRepository.save(project);

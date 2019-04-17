@@ -1,6 +1,5 @@
 package ILocal.repository;
 
-
 import ILocal.entity.ProjectLang;
 import org.springframework.data.repository.CrudRepository;
 

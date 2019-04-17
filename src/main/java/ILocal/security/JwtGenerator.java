@@ -1,6 +1,5 @@
 package ILocal.security;
 
-
 import ILocal.entity.JwtUser;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

@@ -1,6 +1,5 @@
 package ILocal.repository;
 
-
 import ILocal.entity.Term;
 import ILocal.entity.TermLang;
 import org.springframework.data.domain.Pageable;

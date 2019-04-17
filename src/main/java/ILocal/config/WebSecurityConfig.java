@@ -1,6 +1,5 @@
 package ILocal.config;
 
-
 import ILocal.security.JwtAuthenticationEntryPoint;
 import ILocal.security.JwtAuthenticationProvider;
 import ILocal.security.JwtAuthenticationTokenFilter;

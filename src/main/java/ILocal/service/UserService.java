@@ -1,7 +1,7 @@
 package ILocal.service;
 
-import ILocal.entity.User;
 import ILocal.repository.UserRepository;
+import ILocal.entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -50,9 +50,9 @@ public class UserService implements UserDetailsService {
         if (userFromDb != null) {
             return false;
         }
-        if (!StringUtils.isEmpty(user.getEmail()) && checkEmail(user.getEmail())) {
+        /*if (!StringUtils.isEmpty(user.getEmail()) && checkEmail(user.getEmail())) {
             sendActivationLinkToEmail(user);
-        }
+        }*/
         user.setPassword(passwordEncoderMD5.createPassword(user.getPassword()));
         userRepository.save(user);
         return true;

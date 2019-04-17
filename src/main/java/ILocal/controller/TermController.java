@@ -1,15 +1,18 @@
 package ILocal.controller;
 
-
+import ILocal.repository.ProjectRepository;
+import ILocal.repository.TermLangRepository;
+import ILocal.repository.TermRepository;
 import ILocal.entity.Project;
 import ILocal.entity.Term;
 import ILocal.entity.TermLang;
-import ILocal.repository.TermLangRepository;
-import ILocal.repository.TermRepository;
+import ILocal.entity.User;
+import ILocal.service.AccessService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
@@ -28,6 +31,12 @@ public class TermController {
     @Autowired
     private TermLangRepository termLangRepository;
 
+    @Autowired
+    private ProjectRepository projectRepository;
+
+    @Autowired
+    private AccessService accessService;
+
     @GetMapping
     public List<Term> getAll() {
         return termRepository.findAll();
@@ -35,11 +44,9 @@ public class TermController {
 
     @GetMapping("/project/{id}")
     public Project getProjectTerms(@PathVariable("id") Project project, HttpServletResponse response,
+                                   @AuthenticationPrincipal User user,
                                    @PageableDefault(sort = {"id"}, direction = Sort.Direction.ASC) Pageable page) throws IOException {
-        if (project == null) {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project not found!");
-            return null;
-        }
+       if(accessService.isNotProjectOrAccessDenied(project, user, response, false)) return null;
         project.setContributors(null);
         project.setProjectLangs(null);
         setPagesCount(project);
@@ -64,25 +71,30 @@ public class TermController {
     }
 
     @PutMapping("/{id}/update")
-    public void updateTerm(@PathVariable("id") Term term, @RequestBody String newValue, HttpServletResponse response) throws IOException {
+    public Term updateTerm(@PathVariable("id") Term term, @RequestBody String newValue,
+                           @AuthenticationPrincipal User user, HttpServletResponse response) throws IOException {
         if (term == null) {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Term not found!");
-            return;
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Term not  found!");
+            return null;
+        }
+        Project project = projectRepository.findById((long) term.getProjectId());
+        if (accessService.accessDenied(project, user, true)) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied");
+            return null;
         }
         term.setTermValue(newValue);
         termRepository.save(term);
+        return term;
     }
 
     @GetMapping("/{projectId}/filter")
     public Project filter(@PathVariable("projectId") Project project,
                           @RequestParam(required = false) String sort,
                           @RequestParam(required = false) String value,
+                          @AuthenticationPrincipal User user,
                           @PageableDefault(sort = {"id"}, direction = Sort.Direction.ASC) Pageable page,
                           HttpServletResponse response) throws IOException {
-        if (project == null) {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project not found!");
-            return null;
-        }
+        if(accessService.isNotProjectOrAccessDenied(project, user, response, false)) return null;
         project.setTermsCount(project.getTerms().size());
         List<Term> terms = project.getTerms();
         if (value != null) {
@@ -127,9 +139,15 @@ public class TermController {
 
 
     @GetMapping("/{id}/translations")
-    public List<TermLang> getTranslations(@PathVariable("id") Term term, HttpServletResponse response) throws IOException {
+    public List<TermLang> getTranslations(@PathVariable("id") Term term, @AuthenticationPrincipal User user,
+                                          HttpServletResponse response) throws IOException {
         if (term == null) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "Term not found!");
+            return null;
+        }
+        Project project = projectRepository.findById((long) term.getProjectId());
+        if (accessService.accessDenied(project, user, false)) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied");
             return null;
         }
         return termLangRepository.findByTerm(term);

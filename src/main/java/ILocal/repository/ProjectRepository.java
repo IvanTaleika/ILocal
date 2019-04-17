@@ -1,6 +1,5 @@
 package ILocal.repository;
 
-
 import ILocal.entity.Project;
 import ILocal.entity.ProjectContributor;
 import ILocal.entity.User;

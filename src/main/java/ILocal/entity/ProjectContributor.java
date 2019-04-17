@@ -1,6 +1,7 @@
 package ILocal.entity;
 
 
+
 import javax.persistence.*;
 
 @Entity

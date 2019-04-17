@@ -1,6 +1,5 @@
 package ILocal.security;
 
-
 import ILocal.entity.JwtAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -35,10 +34,12 @@ public class JwtAuthenticationTokenFilter extends AbstractAuthenticationProcessi
     @Override
     public Authentication attemptAuthentication(HttpServletRequest httpServletRequest,
                                                 HttpServletResponse httpServletResponse)
-            throws AuthenticationException {
+            throws AuthenticationException, IOException {
         String header = httpServletRequest.getHeader("Authorization");
         if (header == null || !header.startsWith("Token ")) {
-            throw new RuntimeException("JWT Token is missing");
+            httpServletResponse.sendError(401, "UNAUTHORIZED");
+           // throw new RuntimeException("JWT Token is missing");
+            return null;
         }
         String authenticationToken = header.substring(6);
         JwtAuthenticationToken token = new JwtAuthenticationToken(authenticationToken);

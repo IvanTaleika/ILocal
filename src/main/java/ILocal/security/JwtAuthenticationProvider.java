@@ -1,8 +1,8 @@
 package ILocal.security;
 
+import ILocal.repository.UserRepository;
 import ILocal.entity.JwtAuthenticationToken;
 import ILocal.entity.JwtUser;
-import ILocal.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider;
