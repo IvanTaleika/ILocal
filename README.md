@@ -17,3 +17,10 @@ Repository for the Software localization application ILocal.
 
 # IlocalClient
 https://github.com/ChiZ-z/ILocal-client
+
+# Содержание
+1 [Документация](https://github.com/IvanTaleika/ILocal/tree/master/documents)
+
+  1.1 [Архитектурное решение](https://github.com/IvanTaleika/ILocal/blob/master/documents/requirements/ArchitectualSolution(Lab.3).md)
+  
+  1.2 [Парное программирование](https://github.com/IvanTaleika/ILocal/blob/master/documents/requirements/Pair_programming.md)
