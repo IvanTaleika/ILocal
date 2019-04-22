@@ -2,19 +2,14 @@ package ILocal.service;
 
 import ILocal.entity.User;
 import ILocal.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-
 import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.*;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 @Service
 public class UserService implements UserDetailsService {
@@ -47,17 +42,17 @@ public class UserService implements UserDetailsService {
         userRepository.save(user);
     }
 
-    public boolean registrationUser(User user) throws NoSuchAlgorithmException {
+    public User registrationUser(User user) throws NoSuchAlgorithmException {
         User userFromDb = userRepository.findByUsername(user.getUsername());
         if (userFromDb != null) {
-            return false;
+            return null;
         }
         if (!StringUtils.isEmpty(user.getEmail()) && checkEmail(user.getEmail())) {
             sendActivationLinkToEmail(user);
         }
         user.setPassword(passwordEncoderMD5.createPassword(user.getPassword()));
         userRepository.save(user);
-        return true;
+        return user;
     }
 
     public boolean activateUser(String code) {

@@ -1,17 +1,15 @@
 package ILocal.controller;
 
-
 import ILocal.entity.User;
 import ILocal.repository.ProjectRepository;
 import ILocal.repository.UserRepository;
 import ILocal.security.JwtGenerator;
 import ILocal.service.MailService;
 import ILocal.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin(origins = "http://localhost:4200", maxAge = 3600)
 @RequestMapping("/user")

@@ -4,16 +4,12 @@ package ILocal.controller;
 import ILocal.entity.*;
 import ILocal.repository.*;
 import ILocal.service.BitFlagService;
+import java.io.IOException;
+import java.util.List;
+import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.sql.Date;
-import java.util.Calendar;
-import java.util.EnumSet;
-import java.util.List;
 
 @CrossOrigin(origins = "http://localhost:4200", maxAge = 3600)
 @RestController
@@ -64,8 +60,8 @@ public class TermLangController {
             bitFlagService.dropFlag(termLang, BitFlagService.StatusFlag.AUTOTRANSLATED);
 
         termLang.setValue(newVal);
-        termLang.setModifier(userRepository.findById(writer_id));
-        termLang.setModifiedDate(new Date(Calendar.getInstance().getTime().getTime()));
+        termLang.setModifier(user);
+        termLang.setModifiedDate();
         if (projectLangRepository.findById(termLang.getProjectLangId()).isDefault()) {
             List<TermLang> termLangs = termLangRepository.findByTerm(termLang.getTerm());
             termLangs.remove(termLang);

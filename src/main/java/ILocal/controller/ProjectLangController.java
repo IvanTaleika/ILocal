@@ -4,6 +4,11 @@ package ILocal.controller;
 import ILocal.entity.*;
 import ILocal.repository.*;
 import ILocal.service.*;
+import java.io.*;
+import java.net.URLConnection;
+import java.util.List;
+import javax.servlet.http.HttpServletResponse;
+import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -12,11 +17,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import javax.servlet.http.HttpServletResponse;
-import java.io.*;
-import java.net.URLConnection;
-import java.util.List;
 
 @CrossOrigin(origins = "http://localhost:4200", maxAge = 3600)
 @RestController
@@ -44,10 +44,13 @@ public class ProjectLangController {
     @Autowired
     private Translator translator;
 
-    @GetMapping
-    public List<ProjectLang> getProjectLangs() {
-        return projectLangRepository.findAll();
-    }
+    @Autowired
+    private AccessService accessService;
+
+//    @GetMapping
+//    public List<ProjectLang> getProjectLangs() {
+//        return projectLangRepository.findAll();
+//    }
 
     @GetMapping("/{id}/project/{projId}")
     public ProjectLang getProjectLang(@PathVariable("id") ProjectLang projectLang, HttpServletResponse response,
@@ -62,7 +65,7 @@ public class ProjectLangController {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Project hasn't contain project lang!");
             return null;
         }
-        if (accessDenied(projectLang, user, false)) {
+        if (accessService.accessDenied(project, user, false)) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied!");
             return null;
         }
@@ -110,28 +113,14 @@ public class ProjectLangController {
     public ProjectLang updateLang(@PathVariable("id") ProjectLang projectLang, @RequestParam long id,
                                   @AuthenticationPrincipal User user,
                                   HttpServletResponse response) throws IOException {
-        if (projectLang == null) {
-            response.sendError(404, "Project lang not found");
-            return null;
-        }
-        if (accessDenied(projectLang, user, true)) {
-            response.sendError(403, "Access denied");
-            return null;
-        }
+        if(accessService.isNotProjectLangOrAccessDenied(projectLang, user, response, true)) return null;
         return projectLangService.updateLang(projectLang, id, response);
     }
 
     @PostMapping("/{id}/empty")
     public void empty(@PathVariable("id") ProjectLang projectLang, @AuthenticationPrincipal User user,
                       @RequestBody ProjectLang newLang, HttpServletResponse response) throws IOException {
-        if (projectLang == null) {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project lang not found");
-            return;
-        }
-        if (accessDenied(projectLang, user, true)) {
-            response.sendError(403, "Access denied");
-            return;
-        }
+        if(accessService.isNotProjectLangOrAccessDenied(projectLang, user, response, true)) return;
         projectLang.setTermLangs(newLang.getTermLangs());
         projectLang.getTermLangs().forEach(a -> {
             if (a.isSelected()) {
@@ -152,15 +141,8 @@ public class ProjectLangController {
     public ProjectLang importTranslations(@PathVariable("id") ProjectLang projectLang, MultipartFile file,
                                           @AuthenticationPrincipal User user,
                                           @PageableDefault(sort = {"id"}, direction = Sort.Direction.ASC) Pageable page,
-                                          HttpServletResponse response) throws IOException {
-        if (projectLang == null) {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project lang not found");
-            return null;
-        }
-        if (accessDenied(projectLang, user, true)) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied!");
-            return null;
-        }
+                                          HttpServletResponse response) throws IOException, JSONException {
+        if(accessService.isNotProjectLangOrAccessDenied(projectLang, user, response, false)) return null;
         if (file == null) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "File not chosen, Choose the file!");
             return null;
@@ -188,28 +170,14 @@ public class ProjectLangController {
                                 @AuthenticationPrincipal User user,
                                 @PageableDefault(sort = {"id"}, direction = Sort.Direction.ASC) Pageable page,
                                 HttpServletResponse response) throws IOException {
-        if (projectLang == null) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Project lang not found!");
-            return null;
-        }
-        if (accessDenied(projectLang, user, false)) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied!");
-            return null;
-        }
+        if(accessService.isNotProjectLangOrAccessDenied(projectLang, user, response, false)) return null;
         return projectLangService.doFilter(projectLang, term, untranslated, fuzzy, sort_state, page.getPageNumber());
     }
 
     @PostMapping("/{id}/flush-translations")
     public void flushTranslations(@PathVariable("id") ProjectLang projectLang,
                                   @AuthenticationPrincipal User user, HttpServletResponse response) throws IOException {
-        if (projectLang == null) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Project lang not found!");
-            return;
-        }
-        if (accessDenied(projectLang, user, true)) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied!");
-            return;
-        }
+        if(accessService.isNotProjectLangOrAccessDenied(projectLang, user, response, false)) return;
         projectLang.getTermLangs().forEach(a -> a.setValue(""));
         projectLangRepository.save(projectLang);
     }
@@ -231,16 +199,9 @@ public class ProjectLangController {
                                      HttpServletResponse response,
                                      @AuthenticationPrincipal User user,
                                      @PageableDefault(sort = {"id"}, direction = Sort.Direction.ASC) Pageable page) throws IOException {
-        if (projectLang == null) {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project lang not found!");
-            return null;
-        }
+        if(accessService.isNotProjectLangOrAccessDenied(projectLang, user, response, false)) return null;
         if (projectLang.getId() == from) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "You cannot choose this lang!");
-            return null;
-        }
-        if (accessDenied(projectLang, user, false)) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied!");
             return null;
         }
         ProjectLang lang = projectLangRepository.findById(from);
@@ -283,14 +244,7 @@ public class ProjectLangController {
     public void download(@PathVariable("id") ProjectLang projectLang,
                          @AuthenticationPrincipal User user,
                          HttpServletResponse response) throws IOException {
-        if (projectLang == null) {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project lang not found!");
-            return;
-        }
-        if (accessDenied(projectLang, user, false)) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied!");
-            return;
-        }
+        if(accessService.isNotProjectLangOrAccessDenied(projectLang, user, response, false)) return;
         File file = projectLangService.createPropertiesFile(projectLang);
         if (file.exists()) {
             String mimeType = URLConnection.guessContentTypeFromName(file.getName());
@@ -306,15 +260,4 @@ public class ProjectLangController {
         }
     }
 
-    private boolean accessDenied(ProjectLang projectLang, User user, boolean checkRole) {
-        Project project = projectRepository.findById((long) projectLang.getProjectId());
-        boolean forbidden = true;
-        if (!checkRole) {
-            if (project.getContributors().stream().anyMatch(a -> a.getContributor().getId() == user.getId()))
-                forbidden = false;
-        } else if (project.getContributors().stream().anyMatch(a -> a.getContributor().getId() == user.getId() && a.getRole().name().equals("MODERATOR")))
-            forbidden = false;
-        if (project.getAuthor().getId() == user.getId()) forbidden = false;
-        return forbidden;
-    }
 }

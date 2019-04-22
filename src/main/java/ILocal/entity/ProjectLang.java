@@ -1,39 +1,32 @@
 package ILocal.entity;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
-import org.springframework.data.domain.Persistable;
-
-import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+import javax.persistence.*;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 @Entity
 @Table(name = "project_lang")
-public class ProjectLang implements Persistable {
+public class ProjectLang {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
-
     private Long projectId;
-
-    @Transient
-    private String projectName;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "lang_id")
     private Lang lang;
 
-    @OneToMany(mappedBy = "projectLangId", cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "projectLangId",  fetch = FetchType.EAGER)
     @Fetch(value = FetchMode.SUBSELECT)
     private List<TermLang> termLangs = new ArrayList<>();
 
     private boolean isDefault;
 
+    @Transient
+    private String projectName;
     @Transient
     private long termsCount;
     @Transient
@@ -90,11 +83,6 @@ public class ProjectLang implements Persistable {
 
     public void setProjectName(String projectName) {
         this.projectName = projectName;
-    }
-
-    @Override
-    public boolean isNew() {
-        return true;
     }
 
     public long getTermsCount() {

@@ -2,16 +2,17 @@ package ILocal.service;
 
 import ILocal.entity.*;
 import ILocal.repository.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-
-import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Date;
 import java.util.*;
 import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletResponse;
+import org.json.JSONException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Service
 public class ProjectService {
@@ -44,44 +45,42 @@ public class ProjectService {
     @Autowired
     private ParseFile parser;
 
-    public Project addProject(Project project, long userId, long langId) {
+    public Project addProject(Project project, User user, long langId) {
         ProjectLang lang = new ProjectLang();
         lang.setLang(langRepository.findById(langId));
         lang.setDefault(true);
         project.getProjectLangs().add(lang);
-        User user = userRepository.findById(userId);
         project.setAuthor(user);
-        project.setCreationDate(new Date(Calendar.getInstance().getTime().getTime()));
-        project.setLastUpdate(new Date(Calendar.getInstance().getTime().getTime()));
+        project.setCreationDate();
+        project.setLastUpdate();
         projectRepository.save(project);
         lang.setProjectId(project.getId());
         projectLangRepository.save(lang);
         return project;
     }
 
+    @Transactional
     public ProjectLang addProjectLang(Project project, long langId, HttpServletResponse response) throws IOException {
-        if(project == null){
+        if (project == null) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project not found!");
             return null;
         }
         if (langId == -1) {
-            response.sendError(HttpServletResponse.SC_BAD_GATEWAY, "Choose project lang!");
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Choose project lang!");
             return null;
         }
-        if (langRepository.findById(langId) == null) {
-            response.sendError(HttpServletResponse.SC_BAD_GATEWAY, "Incorrect lang!");
+        Lang lang = langRepository.findById(langId);
+        if (lang == null) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Incorrect lang!");
             return null;
         }
-        for (ProjectLang projectLang : project.getProjectLangs()) {
-            if (projectLang.getLang().getId() == langId) {
-                response.sendError(HttpServletResponse.SC_BAD_GATEWAY, "Project lang exist!");
-                return null;
-            }
+        if (project.getProjectLangs().stream().anyMatch(a -> a.getLang().getId() == langId)) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Project lang exist!");
+            return null;
         }
         ProjectLang projectLang = new ProjectLang();
         projectLang.setProjectId(project.getId());
         projectLang.setDefault(false);
-        Lang lang = langRepository.findById(langId);
         projectLang.setLang(lang);
         projectLangRepository.save(projectLang);
         for (Term term : project.getTerms()) {
@@ -91,14 +90,15 @@ public class ProjectService {
             termLang.setStatus(0);
             termLang.setValue("");
             termLang.setProjectLangId(projectLang.getId());
-            termLangRepository.save(termLang);
             projectLang.getTermLangs().add(termLang);
         }
+        termLangRepository.saveAll(projectLang.getTermLangs());
+        projectLangRepository.save(projectLang);
         return projectLang;
     }
 
     public ProjectContributor addContributor(Project project, User newUser, String role, HttpServletResponse response) throws IOException {
-        if(project == null){
+        if (project == null) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project not found!");
             return null;
         }
@@ -106,11 +106,9 @@ public class ProjectService {
             response.sendError(HttpServletResponse.SC_BAD_GATEWAY, "You cannot add author of project!");
             return null;
         }
-        for (ProjectContributor contributor : project.getContributors()) {
-            if (contributor.getContributor().getUsername().equals(newUser.getUsername())) {
-                response.sendError(HttpServletResponse.SC_BAD_GATEWAY, "Contributor exists is this project!");
-                return null;
-            }
+        if (project.getContributors().stream().anyMatch(a -> a.getContributor().getUsername().equals(newUser.getUsername()))) {
+            response.sendError(HttpServletResponse.SC_BAD_GATEWAY, "Contributor exists is this project!");
+            return null;
         }
         User user = userRepository.findByUsername(newUser.getUsername());
         if (user == null) {
@@ -120,20 +118,20 @@ public class ProjectService {
         ProjectContributor projectContributor = new ProjectContributor();
         projectContributor.setContributor(user);
         projectContributor.setRole(ContributorRole.valueOf(role));
-        projectContributor.setProject(project.getId());
+        projectContributor.setProjectId(project.getId());
         contributorRepository.save(projectContributor);
         return projectContributor;
     }
 
-    public Term addTerm(Project project, String termValue, HttpServletResponse response) throws IOException {
-        if(termValue.equals("")){
+    public void addTerm(Project project, String termValue, HttpServletResponse response) throws IOException {
+        if (termValue.equals("")) {
             response.sendError(HttpServletResponse.SC_BAD_GATEWAY, "Term value is empty. Enter value!");
-            return null;
+            return;
         }
         for (Term trm : project.getTerms()) {
-            if (trm.getTermValue().equals(termValue)){
+            if (trm.getTermValue().equals(termValue)) {
                 response.sendError(HttpServletResponse.SC_BAD_GATEWAY, "Term value is exist in this project!");
-                return null;
+                return;
             }
         }
         Term term = new Term();
@@ -146,21 +144,20 @@ public class ProjectService {
             termLang.setLang(projectLang.getLang());
             termLang.setValue("");
             termLang.setStatus(0);
-            termLang.setModifiedDate(new Date(Calendar.getInstance().getTime().getTime()));
+            termLang.setModifiedDate();
             termLang.setProjectLangId(projectLang.getId());
             termLangRepository.save(termLang);
         }
         project.getTerms().add(term);
-        return term;
     }
 
     public void deleteTermFromProject(Project project, long termId, HttpServletResponse response) throws IOException {
         Term term = termRepository.findById(termId);
-        if (term == null || project == null){
+        if (term == null || project == null) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "Cannot delete term!");
             return;
         }
-        if (!project.getTerms().contains(term)){
+        if (!project.getTerms().contains(term)) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "Term not found in this project!");
             return;
         }
@@ -178,39 +175,35 @@ public class ProjectService {
         }
     }
 
-    public void flush(Project project, User user, HttpServletResponse response) throws IOException{
+    @Transactional
+    public void flush(Project project, User user, HttpServletResponse response) throws IOException {
         if (project == null) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project not found");
             return;
         }
-        if (project.getAuthor().getId() == user.getId()) {
+        if (project.getAuthor().getId() != user.getId()) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied");
             return;
         }
-        Iterator<Term> termIterator = project.getTerms().iterator();
-        while (termIterator.hasNext()) {
-            Term term = termIterator.next();
-            termIterator.remove();
-            termRepository.delete(term);
-        }
+        System.out.println(new Date(Calendar.getInstance().getTime().getTime()).getTime());
 
         for (ProjectLang projectLang : project.getProjectLangs()) {
-            Iterator<TermLang> termLangIterator = projectLang.getTermLangs().iterator();
-            while (termLangIterator.hasNext()) {
-                TermLang termLang = termLangIterator.next();
-                termLangIterator.remove();
-                termLangRepository.delete(termLang);
-            }
+            termLangRepository.deleteAll(projectLang.getTermLangs());
+            projectLang.getTermLangs().clear();
         }
+        termRepository.deleteAll(project.getTerms());
+        project.getTerms().clear();
+        projectRepository.save(project);
+        System.out.println(new Date(Calendar.getInstance().getTime().getTime()).getTime());
     }
 
-    public List<Project> searchByName(List<Project> projects,String name) {
+    public List<Project> searchByName(List<Project> projects, String name) {
         return projects.stream()
                 .filter(a -> a.getProjectName().toLowerCase().contains(name.toLowerCase()))
                 .collect(Collectors.toList());
     }
 
-    public List<Project> searchByTerm(List<Project> projects,String term) {
+    public List<Project> searchByTerm(List<Project> projects, String term) {
         return projects.stream()
                 .filter(a -> a.getTerms().stream().anyMatch(b -> b.getTermValue().toLowerCase().contains(term.toLowerCase())))
                 .collect(Collectors.toList());
@@ -225,11 +218,11 @@ public class ProjectService {
     public List<Project> doFilter(User user, String term,
                                   String contributorName, String name, String order_state, boolean contr) {
         List<Project> projectList;
-        if(contr){
+        if (contr) {
             projectList = projectRepository.findAll().stream()
                     .filter(a -> a.getContributors().stream().anyMatch(b -> b.getContributor().getId() == user.getId()))
                     .collect(Collectors.toList());
-        }else projectList = projectRepository.findByAuthor(user);
+        } else projectList = projectRepository.findByAuthor(user);
         if (term != null && !term.equals(""))
             projectList = searchByTerm(projectList, term);
         else if (name != null && !name.equals(""))
@@ -239,14 +232,15 @@ public class ProjectService {
         return sortUserProjects(projectList, order_state);
     }
 
-    public List<ProjectLang> importTerms(Project project, File file, boolean import_values, Long langId) throws IOException {
+    @Transactional
+    public Project importTerms(Project project, File file, boolean import_values, Long langId) throws IOException, JSONException {
         Map<String, String> termsMap = parser.parseFile(file);
+        System.out.println(new Date(Calendar.getInstance().getTime().getTime()).getTime() + "                 1");
         for (String key : termsMap.keySet()) {
             if (project.getTerms().stream().noneMatch(a -> a.getTermValue().equals(key))) {
                 Term term = new Term();
                 term.setProjectId(project.getId());
                 term.setTermValue(key);
-                termRepository.save(term);
                 project.getTerms().add(term);
                 for (ProjectLang projectLang : project.getProjectLangs()) {
                     TermLang termLang = new TermLang();
@@ -256,17 +250,18 @@ public class ProjectService {
                     termLang.setProjectLangId(projectLang.getId());
                     termLang.setTerm(term);
                     termLang.setStatus(0);
-                    termLang.setModifiedDate(new Date(Calendar.getInstance().getTime().getTime()));
+                    termLang.setModifiedDate();
                     termLang.setLang(projectLang.getLang());
-                    termLangRepository.save(termLang);
                     projectLang.getTermLangs().add(termLang);
-                    projectLangRepository.save(projectLang);
                 }
             }
         }
+        termRepository.saveAll(project.getTerms());
+        project.getProjectLangs().forEach(a-> termLangRepository.saveAll(a.getTermLangs()));
         file.delete();
         projectRepository.save(project);
-        return project.getProjectLangs();
+        System.out.println(new Date(Calendar.getInstance().getTime().getTime()).getTime() + "                 1");
+        return project;
     }
 
     public List<ProjectLang> sort(List<ProjectLang> projectLangs, String sort_order) {
@@ -346,6 +341,12 @@ public class ProjectService {
         return result / project.getProjectLangs().size();
     }
 
+    public void setTermPagesCount(Project project) {
+        int tail = 0;
+        if (project.getTerms().size() % 10 != 0) tail += 1;
+        project.setPagesCount(project.getTerms().size() / 10 + tail);
+    }
+
     public void notifyContributors(Project project, String message) {
         for (ProjectContributor contributor : project.getContributors()) {
             if (!StringUtils.isEmpty(contributor.getContributor().getEmail())) {
@@ -353,6 +354,5 @@ public class ProjectService {
                         " notification", message);
             }
         }
-
     }
 }

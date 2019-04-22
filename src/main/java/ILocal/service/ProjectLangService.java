@@ -1,18 +1,14 @@
 package ILocal.service;
 
-
 import ILocal.entity.*;
 import ILocal.repository.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.sql.Date;
+import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletResponse;
+import org.json.JSONException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 @Service
 public class ProjectLangService {
@@ -53,13 +49,13 @@ public class ProjectLangService {
         return setFlags(termLangs);
     }
 
-    public void importTranslations(ProjectLang projectLang, File file) throws IOException {
+    public void importTranslations(ProjectLang projectLang, File file) throws IOException, JSONException {
         Map<String, String> translationMap = parser.parseFile(file);
         projectLang.getTermLangs().stream()
                 .forEach(a -> {
                     if (translationMap.keySet().contains(a.getTerm().getTermValue())) {
                         a.setValue(translationMap.get(a.getTerm().getTermValue()));
-                        a.setModifiedDate(new Date(Calendar.getInstance().getTime().getTime()));
+                        a.setModifiedDate();
                         EnumSet<BitFlagService.StatusFlag> enumSet = bitFlagService.getStatusFlags(a.getStatus());
                         if (enumSet.contains(BitFlagService.StatusFlag.DEFAULT_WAS_CHANGED)) {
                             a.setStatus(a.getStatus() - BitFlagService.StatusFlag.DEFAULT_WAS_CHANGED.getValue());

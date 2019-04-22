@@ -4,17 +4,15 @@ package ILocal.controller;
 import ILocal.entity.*;
 import ILocal.repository.*;
 import ILocal.service.MailService;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "http://localhost:4200", maxAge = 3600)
 @RestController
@@ -82,7 +80,7 @@ public class ContributorController {
             response.sendError(404, "Contributor not found!!");
             return;
         }
-        Project project = projectRepository.findById(contributor.getProject());
+        Project project = projectRepository.findById(contributor.getProjectId());
         if (project.getAuthor().getId() != user.getId()) {
             response.sendError(403, "Access denied!");
             return;
@@ -99,7 +97,7 @@ public class ContributorController {
             response.sendError(404, "Contributor not found!!");
             return;
         }
-        Project project = projectRepository.findById(contributor.getProject());
+        Project project = projectRepository.findById(contributor.getProjectId());
         if (project.getAuthor().getId() != user.getId()) {
             response.sendError(403, "Access denied!");
             return;
@@ -120,7 +118,7 @@ public class ContributorController {
 
     @PostMapping("/{id}/notify-contributor")
     public void notifyContributor(@PathVariable("id") ProjectContributor contributor, @RequestBody String message) {
-        Project project = projectRepository.findById(contributor.getProject());
+        Project project = projectRepository.findById(contributor.getProjectId());
         if (!StringUtils.isEmpty(contributor.getContributor().getEmail())) {
             mailService.send(contributor.getContributor().getEmail(), project.getProjectName() +
                     " notification", message);

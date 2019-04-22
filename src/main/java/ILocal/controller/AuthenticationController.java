@@ -6,13 +6,12 @@ import ILocal.entity.User;
 import ILocal.repository.UserRepository;
 import ILocal.security.JwtGenerator;
 import ILocal.service.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
+import javax.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin(origins = "http://localhost:4200", maxAge = 3600)
 @RestController
@@ -38,10 +37,18 @@ public class AuthenticationController {
     private ResponseService responseService;
 
     @PostMapping("/registration")
-    public String addUser(@RequestBody User user, HttpServletResponse response) throws IOException, NoSuchAlgorithmException {
-        userService.registrationUser(user);
-        JwtUser jwtUser = new JwtUser(user.getId(), user.getUsername());
-        return jwtGenerator.generate(jwtUser);
+    public HashMap<String, String> addUser(@RequestBody User user, HttpServletResponse response) throws IOException, NoSuchAlgorithmException {
+        User existUser = userRepository.findByUsername(user.getUsername());
+        if (existUser == null) {
+            userService.registrationUser(user);
+            user = userRepository.findByUsername(user.getUsername());
+            JwtUser jwtUser = new JwtUser(user.getId(), user.getUsername());
+            HashMap<String, String> token = new HashMap<>();
+            token.put("Token", jwtGenerator.generate(jwtUser));
+            return token;
+        }
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Incorrect login or password");
+        return null;
     }
 
     @PostMapping("/login")

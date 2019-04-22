@@ -3,17 +3,17 @@ package ILocal.controller;
 
 import ILocal.entity.*;
 import ILocal.repository.*;
+import ILocal.service.AccessService;
+import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "http://localhost:4200", maxAge = 3600)
 @RestController
@@ -29,6 +29,9 @@ public class TermController {
     @Autowired
     private ProjectRepository projectRepository;
 
+    @Autowired
+    private AccessService accessService;
+
     @GetMapping
     public List<Term> getAll() {
         return termRepository.findAll();
@@ -38,14 +41,7 @@ public class TermController {
     public Project getProjectTerms(@PathVariable("id") Project project, HttpServletResponse response,
                                    @AuthenticationPrincipal User user,
                                    @PageableDefault(sort = {"id"}, direction = Sort.Direction.ASC) Pageable page) throws IOException {
-        if (project == null) {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project not found!");
-            return null;
-        }
-        if (accessDenied(project, user, false)) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied");
-            return null;
-        }
+       if(accessService.isNotProjectOrAccessDenied(project, user, response, false)) return null;
         project.setContributors(null);
         project.setProjectLangs(null);
         setPagesCount(project);
@@ -70,31 +66,30 @@ public class TermController {
     }
 
     @PutMapping("/{id}/update")
-    public void updateTerm(@PathVariable("id") Term term, @RequestBody String newValue,
+    public Term updateTerm(@PathVariable("id") Term term, @RequestBody String newValue,
                            @AuthenticationPrincipal User user, HttpServletResponse response) throws IOException {
         if (term == null) {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Term not found!");
-            return;
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Term not  found!");
+            return null;
         }
         Project project = projectRepository.findById((long) term.getProjectId());
-        if (accessDenied(project, user, true)) {
+        if (accessService.accessDenied(project, user, true)) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied");
-            return;
+            return null;
         }
         term.setTermValue(newValue);
         termRepository.save(term);
+        return term;
     }
 
     @GetMapping("/{projectId}/filter")
     public Project filter(@PathVariable("projectId") Project project,
                           @RequestParam(required = false) String sort,
                           @RequestParam(required = false) String value,
+                          @AuthenticationPrincipal User user,
                           @PageableDefault(sort = {"id"}, direction = Sort.Direction.ASC) Pageable page,
                           HttpServletResponse response) throws IOException {
-        if (project == null) {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project not found!");
-            return null;
-        }
+        if(accessService.isNotProjectOrAccessDenied(project, user, response, false)) return null;
         project.setTermsCount(project.getTerms().size());
         List<Term> terms = project.getTerms();
         if (value != null) {
@@ -146,22 +141,11 @@ public class TermController {
             return null;
         }
         Project project = projectRepository.findById((long) term.getProjectId());
-        if (accessDenied(project, user, false)) {
+        if (accessService.accessDenied(project, user, false)) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied");
             return null;
         }
         return termLangRepository.findByTerm(term);
-    }
-
-    private boolean accessDenied(Project project, User user, boolean checkRole) {
-        boolean isForbidden = true;
-        if (!checkRole) {
-            if (project.getContributors().stream().anyMatch(a -> a.getContributor().getId() == user.getId()))
-                isForbidden = false;
-        } else if (project.getContributors().stream().anyMatch(a -> a.getContributor().getId() == user.getId() && a.getRole().name().equals("MODERATOR")))
-            isForbidden = false;
-        if (project.getAuthor().getId() == user.getId()) isForbidden = false;
-        return isForbidden;
     }
 
 }

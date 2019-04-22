@@ -1,10 +1,7 @@
 package ILocal.entity;
 
 
-
 import javax.persistence.*;
-import java.util.List;
-import java.util.Optional;
 
 @Entity
 @Table(name = "project_contributor")
@@ -17,7 +14,7 @@ public class ProjectContributor {
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id")
     private User contributor;
-    private Long project;
+    private Long projectId;
 
     @Transient
     private String projectName;
@@ -59,11 +56,11 @@ public class ProjectContributor {
         this.role = role;
     }
 
-    public long getProject() {
-        return project;
+    public long getProjectId() {
+        return projectId;
     }
 
-    public void setProject(Long project) {
-        this.project = project;
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
     }
 }

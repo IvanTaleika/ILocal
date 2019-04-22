@@ -1,17 +1,13 @@
 package ILocal.entity;
 
-import org.hibernate.annotations.*;
-
+import java.sql.Timestamp;
+import java.util.*;
 import javax.persistence.*;
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import java.sql.Date;
-import java.util.ArrayList;
-import java.util.List;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 @Entity
-@Table(name="project")
+@Table(name = "project")
 public class Project {
 
     @Id
@@ -20,31 +16,32 @@ public class Project {
 
     private String projectName;
     private String description;
-    private Date creationDate;
-    private Date lastUpdate;
+    private Timestamp creationDate;
+    private Timestamp lastUpdate;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name="author_id")
+    @JoinColumn(name = "author_id")
     private User author;
 
-    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "projectId", fetch = FetchType.EAGER)
     @Fetch(value = FetchMode.SUBSELECT)
-    private List<ProjectContributor> contributors =  new ArrayList<>();
+    private List<ProjectContributor> contributors = new ArrayList<>();
 
     @OneToMany(mappedBy = "projectId", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @Fetch(value = FetchMode.SUBSELECT)
-    private List<ProjectLang> projectLangs =  new ArrayList<>();
+    private List<ProjectLang> projectLangs = new ArrayList<>();
 
     @OneToMany(mappedBy = "projectId", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @Fetch(value = FetchMode.SUBSELECT)
-    private List<Term> terms =  new ArrayList<>();
+    private List<Term> terms = new ArrayList<>();
 
     @Transient
     private long termsCount;
     @Transient
     private long pagesCount;
 
-    public Project(){}
+    public Project() {
+    }
 
     public Long getId() {
         return id;
@@ -70,20 +67,20 @@ public class Project {
         this.description = description;
     }
 
-    public Date getCreationDate() {
+    public Timestamp getCreationDate() {
         return creationDate;
     }
 
-    public void setCreationDate(Date creationDate) {
-        this.creationDate = creationDate;
+    public void setCreationDate() {
+        this.creationDate = new Timestamp(Calendar.getInstance().getTimeInMillis());
     }
 
-    public Date getLastUpdate() {
+    public Timestamp getLastUpdate() {
         return lastUpdate;
     }
 
-    public void setLastUpdate(Date lastUpdate) {
-        this.lastUpdate = lastUpdate;
+    public void setLastUpdate() {
+        this.lastUpdate = new Timestamp(Calendar.getInstance().getTimeInMillis());
     }
 
     public User getAuthor() {
