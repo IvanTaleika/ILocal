@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -22,6 +23,8 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/projects")
 public class ProjectController {
+
+    private static final Logger logger = Logger.getLogger(ProjectController.class);
 
     @Autowired
     private ProjectRepository projectRepository;
@@ -52,15 +55,29 @@ public class ProjectController {
 
     @GetMapping
     public List<Project> getAll(@AuthenticationPrincipal User user) {
-        return projectRepository.findByAuthor(user);
+        logger.info("User " + user.getUsername() + " is trying to get the projects");
+        return projectRepository.findAll().stream()
+                .filter(a -> a.getAuthor().getId() == user.getId() || a.getContributors().stream()
+                        .anyMatch(b -> b.getContributor().getId() == user.getId())).collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
     public Project getProject(@PathVariable("id") Project project, HttpServletResponse response,
                               @AuthenticationPrincipal User user) throws IOException {
-        if (accessService.isNotProjectOrAccessDenied(project, user, response, false)) return null;
+        logger.info("User " + user.getUsername() + " is trying to get the project");
+        if (accessService.isNotProjectOrAccessDenied(project, user, response, false)) {
+            return null;
+        }
         project.setTermsCount(project.getTerms().size());
+        logger.info("User " + user.getUsername() + " got the project " + project.getProjectName());
         return project;
+    }
+
+    @GetMapping("/{id}/get-contributors")
+    public List<User> getFreeContributors(@PathVariable("id") Project project, @AuthenticationPrincipal User user, @RequestParam String searchUsername) {
+        List<User> userList = userRepository.findAll();
+        return userList.stream().filter(a -> a.getId() != user.getId() && project.getContributors().stream()
+                .noneMatch(b -> b.getContributor().getId() == a.getId()) && a.getUsername().toLowerCase().contains(searchUsername.toLowerCase())).collect(Collectors.toList());
     }
 
     @PutMapping("/{id}/update")
@@ -68,27 +85,33 @@ public class ProjectController {
                                  @RequestParam(required = false) String newDescription,
                                  @AuthenticationPrincipal User user,
                                  HttpServletResponse response) throws IOException {
+        logger.info("User " + user.getUsername() + " is trying to update project");
         if (accessService.isNotProjectOrAccessDenied(project, user, response, true)) return null;
         if (newName != null && !newName.equals("")) project.setProjectName(newName);
         if (newDescription != null && !newDescription.equals("")) project.setDescription(newDescription);
         projectRepository.save(project);
+        logger.info("User " + user.getUsername() + " updated project");
         return project;
     }
 
     @DeleteMapping("/delete")
     public void deleteProject(@RequestParam long id, @AuthenticationPrincipal User user, HttpServletResponse response) throws IOException {
+        logger.info("User " + user.getUsername() + " is trying to delete the project");
         Project project = projectRepository.findById(id);
         if (!accessService.isNotProjectOrNotAuthor(project, user, response)) projectRepository.delete(project);
+        logger.info("User " + user.getUsername() + " deleted project");
     }
 
     @PostMapping("/add")
     public Project addProject(@RequestBody Project project, @AuthenticationPrincipal User user, @RequestParam long lang_id, HttpServletResponse response) throws IOException {
+        logger.info("User " + user.getUsername() + " is trying to add new project");
         return projectService.addProject(project, user, lang_id);
     }
 
     @PostMapping("/{id}/language/add")
     public ProjectLang addProjectLang(@PathVariable("id") Project project, @AuthenticationPrincipal User user,
                                       @RequestParam long lang_id, HttpServletResponse response) throws IOException {
+        logger.info("User " + user.getUsername() + " is trying to add new project lang to project");
         if (accessService.isNotProjectOrAccessDenied(project, user, response, true)) return null;
         return projectService.addProjectLang(project, lang_id, response);
     }
@@ -96,6 +119,7 @@ public class ProjectController {
     @PostMapping("/language/delete")
     public void deleteProjectLang(@RequestBody long id, @AuthenticationPrincipal User user,
                                   HttpServletResponse response) throws IOException {
+        logger.info("User " + user.getUsername() + " is trying to delete project lang");
         ProjectLang lang = projectLangRepository.findById(id);
         Project project;
         if (lang == null) {
@@ -106,9 +130,11 @@ public class ProjectController {
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied!");
         } else if (lang.isDefault()) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "You cannot delete default lang!");
+            logger.error("User " + user.getUsername() + " is trying to delete default project lang");
         } else {
             project.getProjectLangs().remove(lang);
             projectLangRepository.deleteById(id);
+            logger.info("User " + user.getUsername() + " deleted project lang");
         }
     }
 
@@ -116,6 +142,7 @@ public class ProjectController {
     public ProjectContributor addContributor(@PathVariable("id") Project project, HttpServletResponse response,
                                              @AuthenticationPrincipal User user,
                                              @RequestBody User newUser, @RequestParam String role) throws IOException {
+        logger.info("User " + user.getUsername() + " is trying to add new contributor to project");
         if (accessService.isNotProjectOrNotAuthor(project, user, response)) return null;
         return projectService.addContributor(project, newUser, role, response);
     }
@@ -123,16 +150,20 @@ public class ProjectController {
     @PostMapping("/delete/contributor")
     public boolean deleteContributor(@RequestBody long id, @AuthenticationPrincipal User user,
                                      HttpServletResponse response) throws IOException {
+        logger.info("User " + user.getUsername() + " is trying to delete contributor from project");
         ProjectContributor contributor = contributorRepository.findById(id);
         if (contributor == null) {
+            logger.error("Contributor not found");
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "Contributor not found!");
             return false;
         }
         if (projectRepository.findById(contributor.getProjectId()).getAuthor().getId() != user.getId()) {
+            logger.error("Cannot delete contributor. Access denied.");
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied!");
             return false;
         }
         contributorRepository.deleteById(id);
+        logger.error("Contributor deleted");
         return true;
     }
 
@@ -140,24 +171,26 @@ public class ProjectController {
     public Project addTermToProject(@PathVariable("id") Project project, @RequestBody String term, HttpServletResponse response,
                                     @AuthenticationPrincipal User user,
                                     @PageableDefault(sort = {"id"}, direction = Sort.Direction.ASC) Pageable page) throws IOException {
+        logger.info("User " + user.getUsername() + " is trying to add term to project");
         if (accessService.isNotProjectOrAccessDenied(project, user, response, true)) return null;
         projectService.addTerm(project, term, response);
         project = projectRepository.findById((long) project.getId());
         project.setContributors(null);
         project.setProjectLangs(null);
-        projectService.setTermPagesCount(project);
+        projectService.setTermPagesCount(project, page.getPageSize());
         project.setTermsCount(project.getTerms().size());
         project.setTerms(termRepository.findByProjectId(project.getId(), page));
+        logger.info("User " + user.getUsername() + " added term to project");
         return project;
     }
 
     @GetMapping("/{id}/terms/pages-count")
-    public long getPagesCount(@PathVariable("id") Project project, HttpServletResponse response) throws IOException {
+    public long getPagesCount(@PathVariable("id") Project project, HttpServletResponse response, Pageable page) throws IOException {
         if (project == null) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
             return -1;
         }
-        projectService.setTermPagesCount(project);
+        projectService.setTermPagesCount(project, page.getPageSize());
         return project.getPagesCount();
     }
 
@@ -166,8 +199,10 @@ public class ProjectController {
     public List<Term> deleteTerm(@PathVariable("id") Project project, @RequestBody long term_id, HttpServletResponse response,
                                  @AuthenticationPrincipal User user,
                                  @PageableDefault(sort = {"id"}, direction = Sort.Direction.ASC) Pageable page) throws IOException {
+        logger.info("User " + user.getUsername() + " is trying to delete term from project");
         if (accessService.isNotProjectOrAccessDenied(project, user, response, true)) return null;
         projectService.deleteTermFromProject(project, term_id, response);
+        logger.info("Term has been deleted from project " + project.getProjectName());
         return termRepository.findByProjectId(project.getId(), page);
     }
 
@@ -175,19 +210,23 @@ public class ProjectController {
     public List<Term> deleteSelected(@PathVariable("id") Project project, HttpServletResponse response,
                                      @RequestBody Project proj, @AuthenticationPrincipal User user,
                                      @PageableDefault(sort = {"id"}, direction = Sort.Direction.ASC) Pageable page) throws IOException {
+        logger.info("User " + user.getUsername() + " is trying to delete selected term from project");
         if (accessService.isNotProjectOrAccessDenied(project, user, response, true)) return null;
         for (Term term : proj.getTerms()) {
             if (term.isSelected())
                 projectService.deleteTermFromProject(project, term.getId(), response);
         }
+        logger.info("Selected terms have been deleted from project " + proj.getProjectName());
         return termRepository.findByProjectId(project.getId(), page);
     }
 
     @DeleteMapping("/flush")
     public void flush(@RequestParam long id, @AuthenticationPrincipal User user, HttpServletResponse response) throws IOException {
+        logger.info("User " + user.getUsername() + " is trying to flush project");
         Project project = projectRepository.findById(id);
         if (accessService.isNotProjectOrNotAuthor(project, user, response)) return;
         projectService.flush(project, user, response);
+        logger.info("User " + user.getUsername() + " flushed project " + project.getProjectName());
     }
 
     @GetMapping("/{userId}/projects")
@@ -222,12 +261,14 @@ public class ProjectController {
 
     @PostMapping("/{id}/import-terms")
     public Project importTerms(@PathVariable("id") Project project, MultipartFile file,
-                                         @AuthenticationPrincipal User user,
-                                         @RequestParam boolean import_values, HttpServletResponse response,
-                                         @RequestParam(required = false) Long projLangId) throws IOException, JSONException {
+                               @AuthenticationPrincipal User user,
+                               @RequestParam boolean import_values, HttpServletResponse response,
+                               @RequestParam(required = false) Long projLangId) throws IOException, JSONException {
+        logger.info("User " + user.getUsername() + " is trying to import terms to project");
         if (accessService.isNotProjectOrAccessDenied(project, user, response, true)) return null;
         if (file == null) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Choose file!");
+            logger.error("File is null");
             return null;
         }
         File convFile = new File(file.getOriginalFilename());
@@ -236,6 +277,7 @@ public class ProjectController {
         fos.write(file.getBytes());
         project = projectService.importTerms(project, convFile, import_values, projLangId);
         project.setTermsCount(project.getTerms().size());
+        logger.info("User " + user.getUsername() + " imported terms to project");
         return project;
     }
 
@@ -243,7 +285,9 @@ public class ProjectController {
     public List<ProjectLang> sortProjectLangs(@PathVariable("id") Project project, HttpServletResponse response,
                                               @AuthenticationPrincipal User user,
                                               @RequestParam(required = false) String sort_state) throws IOException {
+        logger.info("User " + user.getUsername() + " is trying to sort project langs");
         if (accessService.isNotProjectOrAccessDenied(project, user, response, false)) return null;
+        logger.info("User " + user.getUsername() + " sorted project langs");
         return projectService.sort(project.getProjectLangs(), sort_state);
     }
 
@@ -253,15 +297,19 @@ public class ProjectController {
                                   @RequestParam(required = false) String contributorName,
                                   @RequestParam(required = false) String sort_state,
                                   @RequestParam boolean contributions,
+                                  @RequestParam String show_value,
                                   @AuthenticationPrincipal User user) {
-        return projectService.doFilter(user, term, contributorName, name, sort_state, contributions);
+        logger.info("User " + user.getUsername() + " is trying to filter projects");
+        return projectService.doFilter(user, term, contributorName, name, sort_state, contributions, show_value);
     }
 
     @PostMapping("/{id}/notify")
     public void notify(@PathVariable("id") Project project, @AuthenticationPrincipal User user,
                        @RequestBody String message, HttpServletResponse response) throws IOException {
+        logger.info("User " + user.getUsername() + " is trying to notify project contributors");
         if (!accessService.isNotProjectOrNotAuthor(project, user, response))
             projectService.notifyContributors(project, message);
+        logger.info("User " + user.getUsername() + " notified project contributors");
     }
 
     @GetMapping("/{id}/name")

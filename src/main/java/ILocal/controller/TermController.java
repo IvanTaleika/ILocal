@@ -1,6 +1,5 @@
 package ILocal.controller;
 
-
 import ILocal.entity.*;
 import ILocal.repository.*;
 import ILocal.service.AccessService;
@@ -8,6 +7,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -32,28 +32,32 @@ public class TermController {
     @Autowired
     private AccessService accessService;
 
-    @GetMapping
-    public List<Term> getAll() {
-        return termRepository.findAll();
-    }
+    private static final Logger logger = Logger.getLogger(TermController.class);
+
+//    @GetMapping
+//    public List<Term> getAll() {
+//        return termRepository.findAll();
+//    }
 
     @GetMapping("/project/{id}")
     public Project getProjectTerms(@PathVariable("id") Project project, HttpServletResponse response,
                                    @AuthenticationPrincipal User user,
                                    @PageableDefault(sort = {"id"}, direction = Sort.Direction.ASC) Pageable page) throws IOException {
+        logger.info("User "+user.getUsername()+" is trying to get project terms");
        if(accessService.isNotProjectOrAccessDenied(project, user, response, false)) return null;
         project.setContributors(null);
         project.setProjectLangs(null);
-        setPagesCount(project);
+        setPagesCount(project, page.getPageSize());
         project.setTermsCount(project.getTerms().size());
         project.setTerms(termRepository.findByProjectId(project.getId(), page));
+        logger.info("User "+user.getUsername()+" got project terms");
         return project;
     }
 
-    private void setPagesCount(Project project) {
+    private void setPagesCount(Project project, int size) {
         int tail = 0;
-        if (project.getTerms().size() % 10 != 0) tail += 1;
-        project.setPagesCount(project.getTerms().size() / 10 + tail);
+        if (project.getTerms().size() % size != 0) tail += 1;
+        project.setPagesCount(project.getTerms().size() / size + tail);
     }
 
     @GetMapping("/{id}")
@@ -68,7 +72,9 @@ public class TermController {
     @PutMapping("/{id}/update")
     public Term updateTerm(@PathVariable("id") Term term, @RequestBody String newValue,
                            @AuthenticationPrincipal User user, HttpServletResponse response) throws IOException {
+        logger.info("User "+user.getUsername()+" is trying to update project term");
         if (term == null) {
+            logger.error("Term not found");
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "Term not  found!");
             return null;
         }
@@ -77,8 +83,16 @@ public class TermController {
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied");
             return null;
         }
+        for (Term t : project.getTerms()) {
+            if(t.getTermValue().equals(newValue)){
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+                return null;
+            }
+        }
+
         term.setTermValue(newValue);
         termRepository.save(term);
+        logger.info("User "+user.getUsername()+" updated project terms");
         return term;
     }
 
@@ -89,6 +103,7 @@ public class TermController {
                           @AuthenticationPrincipal User user,
                           @PageableDefault(sort = {"id"}, direction = Sort.Direction.ASC) Pageable page,
                           HttpServletResponse response) throws IOException {
+        logger.info("User "+user.getUsername()+" is trying to filter project terms");
         if(accessService.isNotProjectOrAccessDenied(project, user, response, false)) return null;
         project.setTermsCount(project.getTerms().size());
         List<Term> terms = project.getTerms();
@@ -112,31 +127,34 @@ public class TermController {
             }
         int currentPage = page.getPageNumber();
         project.setTerms(terms);
-        setPagesCount(project);
+        setPagesCount(project, page.getPageSize());
         if (!terms.isEmpty()) {
-            int maxPage = terms.size() / 10 - 1;
-            if (terms.size() % 10 != 0) maxPage += 1;
+            int maxPage = terms.size() / page.getPageSize() - 1;
+            if (terms.size() % page.getPageSize() != 0) maxPage += 1;
             if (currentPage > maxPage) currentPage = maxPage;
             int last = 0;
             if (currentPage == maxPage) last = terms.size();
-            else last = (currentPage + 1) * 10;
-            terms = terms.subList(currentPage * 10, last);
+            else last = (currentPage + 1) * page.getPageSize();
+            terms = terms.subList(currentPage * page.getPageSize(), last);
             project.setTerms(terms);
         }
+        logger.info("User "+user.getUsername()+" filtered project terms");
         return project;
     }
 
-    private void setTermPagesCount(Project project) {
-        int tail = 0;
-        if (project.getTerms().size() % 10 != 0) tail += 1;
-        project.setPagesCount(project.getTerms().size() / 10 + tail);
-    }
+//    private void setTermPagesCount(Project project, int size) {
+//        int tail = 0;
+//        if (project.getTerms().size() % size != 0) tail += 1;
+//        project.setPagesCount(project.getTerms().size() / size + tail);
+//    }
 
 
     @GetMapping("/{id}/translations")
     public List<TermLang> getTranslations(@PathVariable("id") Term term, @AuthenticationPrincipal User user,
                                           HttpServletResponse response) throws IOException {
+        logger.info("User "+user.getUsername()+" is trying to get project term translations");
         if (term == null) {
+            logger.error("Term not found");
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "Term not found!");
             return null;
         }
@@ -145,6 +163,7 @@ public class TermController {
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied");
             return null;
         }
+        logger.info("User "+user.getUsername()+" got project terms");
         return termLangRepository.findByTerm(term);
     }
 

@@ -1,6 +1,6 @@
 package ILocal.entity;
 
-import java.sql.Timestamp;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import java.util.*;
 import javax.persistence.*;
 
@@ -14,7 +14,8 @@ public class TermLang {
     private Long id;
     private Long projectLangId;
     private int status;
-    private Timestamp modifiedDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm", timezone = "GMT+03:00")
+    private Date modifiedDate;
     private String value;
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -78,12 +79,12 @@ public class TermLang {
         this.modifier = modifier;
     }
 
-    public Timestamp getModifiedDate() {
+    public Date getModifiedDate() {
         return modifiedDate;
     }
 
     public void setModifiedDate() {
-        this.modifiedDate = new Timestamp(Calendar.getInstance().getTimeInMillis());
+        this.modifiedDate = new Date();
     }
 
     public long getProjectLangId() {
