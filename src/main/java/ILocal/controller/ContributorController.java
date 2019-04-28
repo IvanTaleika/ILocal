@@ -1,6 +1,5 @@
 package ILocal.controller;
 
-
 import ILocal.entity.*;
 import ILocal.repository.*;
 import ILocal.service.MailService;
@@ -14,7 +13,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-@CrossOrigin(origins = "http://localhost:4200", maxAge = 3600)
 @RestController
 @RequestMapping("/contributors")
 public class ContributorController {

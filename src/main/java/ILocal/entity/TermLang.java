@@ -10,7 +10,7 @@ import javax.persistence.*;
 public class TermLang {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private Long projectLangId;
     private int status;

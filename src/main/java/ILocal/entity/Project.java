@@ -11,7 +11,7 @@ import org.hibernate.annotations.FetchMode;
 public class Project {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String projectName;

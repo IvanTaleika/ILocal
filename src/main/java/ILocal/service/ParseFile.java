@@ -12,8 +12,8 @@ import org.mozilla.universalchardet.UniversalDetector;
 public class ParseFile {
 
     public Map<String, String> parseFile(File fileName) throws IOException, JSONException {
-        if(fileName.getName().contains("properties")) return parseProperties(fileName);
-        if(fileName.getName().contains("json")) return parseJson(fileName);
+        if(fileName.getName().endsWith("properties")) return parseProperties(fileName);
+        if(fileName.getName().endsWith("json")) return parseJson(fileName);
         return null;
     }
 
@@ -22,7 +22,7 @@ public class ParseFile {
         JsonElement json = gson.fromJson(new FileReader(fileName.getPath()), JsonElement.class);
         JSONObject jsonObj = new JSONObject(json.toString());
         Map<String, String> map = new Gson().fromJson(jsonObj.toString(),Map.class);
-        return null;
+        return map;
     }
 
     public Map<String, String> parseProperties(File fileName) throws IOException {
@@ -41,7 +41,7 @@ public class ParseFile {
         }
         inputStream = new FileInputStream(fileName);
         properties.load(new InputStreamReader(inputStream, Charset.forName(encodingCharset)));
-        HashMap<String, String> propertiesMap = new HashMap<String, String>((Map) properties);
+        Map<String, String> propertiesMap = new HashMap<String, String>((Map)properties);
         return propertiesMap;
     }
 }

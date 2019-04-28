@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-@CrossOrigin(origins = "http://localhost:4200", maxAge = 3600)
 @RestController
 @RequestMapping("/term-lang")
 public class TermLangController {
@@ -37,11 +36,6 @@ public class TermLangController {
     private ProjectLangService projectLangService;
 
     private static final Logger logger = Logger.getLogger(TermLangController.class);
-
-//    @GetMapping
-//    public List<TermLang> getAll() {
-//        return termLangRepository.findAll();
-//    }
 
     @PutMapping("/{id}/update")
     public TermLang updateValue(@PathVariable("id") TermLang termLang,

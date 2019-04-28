@@ -42,6 +42,9 @@ public class ProjectService {
     @Autowired
     private MailService mailService;
 
+    @Autowired
+    private BitFlagService bitFlag;
+
     private static final Logger logger = Logger.getLogger(ProjectService.class);
 
     @Autowired
@@ -136,7 +139,7 @@ public class ProjectService {
         return projectContributor;
     }
 
-    public void addTerm(Project project, String termValue, HttpServletResponse response) throws IOException {
+    public void addTerm(Project project, String termValue, HttpServletResponse response, User user) throws IOException {
         if (termValue.equals("")) {
             response.sendError(HttpServletResponse.SC_BAD_GATEWAY, "Term value is empty. Enter value!");
             logger.error("Term value is empty");
@@ -158,6 +161,7 @@ public class ProjectService {
             termLang.setTerm(term);
             termLang.setLang(projectLang.getLang());
             termLang.setValue("");
+            termLang.setModifier(user);
             termLang.setStatus(0);
             termLang.setModifiedDate();
             termLang.setProjectLangId(projectLang.getId());
@@ -256,33 +260,105 @@ public class ProjectService {
     }
 
     @Transactional
-    public Project importTerms(Project project, File file, boolean import_values, Long langId) throws IOException, JSONException {
+    public Project importTermsMerge(Project project, File file, boolean import_values, Long langId, HttpServletResponse response, User user) throws IOException, JSONException {
         Map<String, String> termsMap = parser.parseFile(file);
-        for (String key : termsMap.keySet()) {
-            if (project.getTerms().stream().noneMatch(a -> a.getTermValue().equals(key))) {
-                Term term = new Term();
-                term.setProjectId(project.getId());
-                term.setTermValue(key);
-                project.getTerms().add(term);
-                for (ProjectLang projectLang : project.getProjectLangs()) {
-                    TermLang termLang = new TermLang();
-                    if (import_values && langId != null && (long) projectLang.getId() == langId) {
-                        termLang.setValue(termsMap.get(key));
-                    } else termLang.setValue("");
-                    termLang.setProjectLangId(projectLang.getId());
-                    termLang.setTerm(term);
-                    termLang.setStatus(0);
-                    termLang.setModifiedDate();
-                    termLang.setLang(projectLang.getLang());
-                    projectLang.getTermLangs().add(termLang);
+        if (langId != null) {
+            ProjectLang projectLang = projectLangRepository.findById((long) langId);
+            if (projectLang == null || project.getProjectLangs().stream().noneMatch(a -> a.getId().equals(projectLang.getId()))) {
+                response.sendError(400);
+                return null;
+            }
+        }
+        project.getTerms().forEach(a -> {
+            if (termsMap.containsKey(a.getTermValue())) {
+                if (import_values) removeTermAndSetTranslation(termsMap, project, langId, a.getTermValue(), user);
+            }
+        });
+//        Files.delete(file.toPath());
+        return addNewTerms(project, termsMap, langId, import_values, user);
+    }
+
+    private void removeTermAndSetTranslation(Map<String, String> termsMap, Project project, Long langId, String term, User user){
+        project.getProjectLangs().forEach(b -> {
+            if (b.getId() == (long) langId) {
+                b.getTermLangs().forEach(c -> {
+                    if (c.getTerm().getTermValue().equals(term)) {
+                        c.setModifier(user);
+                        c.setModifiedDate();
+                        c.setValue(termsMap.get(term));
+                    }
+                });
+                if(b.isDefault()){
+                    project.getProjectLangs().forEach(c->{
+                        if(!c.isDefault()){
+                            c.getTermLangs().forEach(d->{
+                                if(d.getTerm().getTermValue().equals(term) && !d.getValue().equals("")){
+                                    if (!bitFlag.isContainsFlag(d.getStatus(), BitFlagService.StatusFlag.DEFAULT_WAS_CHANGED)) {
+                                        bitFlag.addFlag(d, BitFlagService.StatusFlag.DEFAULT_WAS_CHANGED);
+                                        d.getFlags().add(BitFlagService.StatusFlag.DEFAULT_WAS_CHANGED.name());
+                                    }
+                                }
+                            });
+                        }
+                    });
                 }
+            }
+        });
+        termsMap.remove(term);
+    }
+
+    private Project addNewTerms(Project project, Map<String, String> termsMap, Long langId, boolean import_values, User user) {
+        for (String key : termsMap.keySet()) {
+            Term term = new Term();
+            term.setProjectId(project.getId());
+            term.setTermValue(key);
+            project.getTerms().add(term);
+            for (ProjectLang lang : project.getProjectLangs()) {
+                TermLang termLang = new TermLang();
+                if (import_values && langId != null && lang.getId() == (long) langId) {
+                    termLang.setValue(termsMap.get(key));
+                } else termLang.setValue("");
+                termLang.setProjectLangId(lang.getId());
+                termLang.setTerm(term);
+                termLang.setStatus(0);
+                termLang.setModifiedDate();
+                termLang.setModifier(user);
+                termLang.setLang(lang.getLang());
+                lang.getTermLangs().add(termLang);
             }
         }
         termRepository.saveAll(project.getTerms());
-        project.getProjectLangs().forEach(a -> termLangRepository.saveAll(a.getTermLangs()));
-        file.delete();
+        List<TermLang> termLangs = new ArrayList<>();
+        project.getProjectLangs().forEach(a -> termLangs.addAll(a.getTermLangs()));
+        termLangRepository.saveAll(termLangs);
         projectRepository.save(project);
         return project;
+    }
+
+    @Transactional
+    public Project importTermsFullReplace(Project project, File file, boolean import_values, Long langId, HttpServletResponse response, User user) throws IOException, JSONException {
+        Map<String, String> termsMap = parser.parseFile(file);
+        List<Term> removeTerm = new ArrayList<>();
+        List<TermLang> removeTermLang = new ArrayList<>();
+        project.getTerms().forEach(a -> {
+            if (termsMap.containsKey(a.getTermValue())) {
+                if (import_values) removeTermAndSetTranslation(termsMap, project, langId, a.getTermValue(), user);
+            } else {
+                removeTerm.add(a);
+                project.getProjectLangs().forEach(d -> {
+                    d.getTermLangs().forEach(e -> {
+                        if (e.getTerm().getTermValue().equals(a.getTermValue()))
+                            removeTermLang.add(e);
+                    });
+                });
+            }
+        });
+        removeTerm.forEach(a -> project.getTerms().remove(a));
+        removeTermLang.forEach(b -> project.getProjectLangs().forEach(c -> c.getTermLangs().remove(b)));
+        termLangRepository.deleteAll(removeTermLang);
+        termRepository.deleteAll(removeTerm);
+       // Files.delete(file.toPath());
+        return addNewTerms(project, termsMap, langId, import_values, user);
     }
 
     public List<ProjectLang> sort(List<ProjectLang> projectLangs, String sort_order) {

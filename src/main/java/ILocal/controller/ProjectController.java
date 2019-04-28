@@ -19,7 +19,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-@CrossOrigin(origins = "http://localhost:4200", maxAge = 3600)
 @RestController
 @RequestMapping("/projects")
 public class ProjectController {
@@ -173,7 +172,7 @@ public class ProjectController {
                                     @PageableDefault(sort = {"id"}, direction = Sort.Direction.ASC) Pageable page) throws IOException {
         logger.info("User " + user.getUsername() + " is trying to add term to project");
         if (accessService.isNotProjectOrAccessDenied(project, user, response, true)) return null;
-        projectService.addTerm(project, term, response);
+        projectService.addTerm(project, term, response, user);
         project = projectRepository.findById((long) project.getId());
         project.setContributors(null);
         project.setProjectLangs(null);
@@ -262,7 +261,8 @@ public class ProjectController {
     @PostMapping("/{id}/import-terms")
     public Project importTerms(@PathVariable("id") Project project, MultipartFile file,
                                @AuthenticationPrincipal User user,
-                               @RequestParam boolean import_values, HttpServletResponse response,
+                               @RequestParam boolean import_values,
+                               @RequestParam boolean replace, HttpServletResponse response,
                                @RequestParam(required = false) Long projLangId) throws IOException, JSONException {
         logger.info("User " + user.getUsername() + " is trying to import terms to project");
         if (accessService.isNotProjectOrAccessDenied(project, user, response, true)) return null;
@@ -275,7 +275,11 @@ public class ProjectController {
         convFile.createNewFile();
         FileOutputStream fos = new FileOutputStream(convFile);
         fos.write(file.getBytes());
-        project = projectService.importTerms(project, convFile, import_values, projLangId);
+        fos.close();
+        if (replace)
+            project = projectService.importTermsFullReplace(project, convFile, import_values, projLangId, response, user);
+        else
+            project = projectService.importTermsMerge(project, convFile, import_values, projLangId, response, user);
         project.setTermsCount(project.getTerms().size());
         logger.info("User " + user.getUsername() + " imported terms to project");
         return project;

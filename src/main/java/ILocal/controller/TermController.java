@@ -1,5 +1,6 @@
 package ILocal.controller;
 
+
 import ILocal.entity.*;
 import ILocal.repository.*;
 import ILocal.service.AccessService;
@@ -15,7 +16,6 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-@CrossOrigin(origins = "http://localhost:4200", maxAge = 3600)
 @RestController
 @RequestMapping("/terms")
 public class TermController {

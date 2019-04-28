@@ -32,7 +32,7 @@ public class ProjectLangService {
 
     private static final Logger logger = Logger.getLogger(ProjectLangService.class);
 
-    public List<TermLang> filter(List<TermLang> termLangs, Boolean untranslated, Boolean fuzzy) {
+    public List<TermLang> filter(List<TermLang> termLangs, Boolean untranslated, Boolean fuzzy, Boolean edited) {
         logger.info("Filter term lang list");
         if (untranslated != null && untranslated) {
             termLangs = termLangs.stream().filter(a -> a.getValue().equals("")).collect(Collectors.toList());
@@ -41,15 +41,12 @@ public class ProjectLangService {
         }
 
         if (fuzzy != null && fuzzy) {
-            termLangs = termLangs.stream().filter(a -> {
-                EnumSet<BitFlagService.StatusFlag> enumSet = bitFlagService.getStatusFlags(a.getStatus());
-                return enumSet.contains(BitFlagService.StatusFlag.FUZZY);
-            }).collect(Collectors.toList());
+            termLangs = termLangs.stream().filter(a -> bitFlagService.isContainsFlag(a.getStatus(),BitFlagService.StatusFlag.FUZZY)).collect(Collectors.toList());
         } else if (fuzzy != null) {
-            termLangs = termLangs.stream().filter(a -> {
-                EnumSet<BitFlagService.StatusFlag> enumSet = bitFlagService.getStatusFlags(a.getStatus());
-                return !enumSet.contains(BitFlagService.StatusFlag.FUZZY);
-            }).collect(Collectors.toList());
+            termLangs = termLangs.stream().filter(a -> !bitFlagService.isContainsFlag(a.getStatus(),BitFlagService.StatusFlag.FUZZY)).collect(Collectors.toList());
+        }
+        if(edited!=null && edited){
+            termLangs = termLangs.stream().filter(a -> bitFlagService.isContainsFlag(a.getStatus(),BitFlagService.StatusFlag.DEFAULT_WAS_CHANGED)).collect(Collectors.toList());
         }
         return setFlags(termLangs);
     }
@@ -114,12 +111,12 @@ public class ProjectLangService {
     }
 
     public ProjectLang doFilter(ProjectLang projectLang, String term,
-                                Boolean untranslated, Boolean fuzzy, String order_state, int page, int size) {
+                                Boolean untranslated, Boolean fuzzy, Boolean edited, String order_state, int page, int size) {
         logger.info("Main filter");
         List<TermLang> langs = projectLang.getTermLangs();
         setCounts(projectLang);
         langs = search(langs, term);
-        langs = filter(langs, untranslated, fuzzy);
+        langs = filter(langs, untranslated, fuzzy, edited);
         langs = sort(langs, order_state);
         projectLang.setTermLangs(langs);
         setPagesCount(projectLang, size);
@@ -129,7 +126,7 @@ public class ProjectLangService {
             if (page > maxPage) page = maxPage;
             int last = 0;
             if (page == maxPage) last = langs.size();
-            else last = (page+1) * size;
+            else last = (page + 1) * size;
             langs = langs.subList(page * size, last);
             setFlags(langs);
             projectLang.setTermLangs(langs);
@@ -147,10 +144,10 @@ public class ProjectLangService {
     }
 
     public void setFlagsToTerm(TermLang term) {
-            EnumSet<BitFlagService.StatusFlag> flags = bitFlagService.getStatusFlags(term.getStatus());
-            List<String> list = new ArrayList<>();
-            flags.forEach(b -> list.add(b.toString()));
-            term.setFlags(list);
+        EnumSet<BitFlagService.StatusFlag> flags = bitFlagService.getStatusFlags(term.getStatus());
+        List<String> list = new ArrayList<>();
+        flags.forEach(b -> list.add(b.toString()));
+        term.setFlags(list);
     }
 
     public File createPropertiesFile(ProjectLang projectLang) throws IOException {
@@ -158,14 +155,27 @@ public class ProjectLangService {
         Project project = projectRepository.findById((long) projectLang.getProjectId());
         File file = new File(project.getProjectName() + "_" + projectLang.getLang().getLangDef() + ".properties");
         PrintWriter pw2 = new PrintWriter(file, "UTF-8");
-        pw2.write("{ \n");
         projectLang.getTermLangs().forEach(term -> {
-//            pw2.write(term.getTerm().getTermValue() + "=" + term.getValue());
-//            pw2.write("\n");
-            pw2.write("    \""+term.getTerm().getTermValue()+"\"" + " : " + "\""+term.getValue()+"\",");
+            pw2.write(term.getTerm().getTermValue() + "=" + term.getValue());
             pw2.write("\n");
         });
-        pw2.write("} \n");
+        pw2.close();
+        return file;
+    }
+
+    public File createJSONFile(ProjectLang projectLang) throws IOException {
+        logger.info("Creating JSON file");
+        Project project = projectRepository.findById((long) projectLang.getProjectId());
+        File file = new File(project.getProjectName() + "_" + projectLang.getLang().getLangDef() + ".json");
+        PrintWriter pw2 = new PrintWriter(file, "UTF-8");
+        pw2.write("{ \n");
+        Iterator<TermLang> iterator = projectLang.getTermLangs().iterator();
+        while (iterator.hasNext()) {
+            TermLang term = iterator.next();
+            pw2.write("    \"" + term.getTerm().getTermValue() + "\"" + " : " + "\"" + term.getValue() + "\"");
+            if (iterator.hasNext()) pw2.write(", \n");
+        }
+        pw2.write(" \n}");
         pw2.close();
         return file;
     }

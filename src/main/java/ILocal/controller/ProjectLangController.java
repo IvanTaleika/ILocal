@@ -6,6 +6,7 @@ import ILocal.repository.*;
 import ILocal.service.*;
 import java.io.*;
 import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
@@ -19,7 +20,6 @@ import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-@CrossOrigin(origins = "http://localhost:4200", maxAge = 3600)
 @RestController
 @RequestMapping("/project-lang")
 public class ProjectLangController {
@@ -143,9 +143,9 @@ public class ProjectLangController {
                     bitFlag.dropFlag(a, BitFlagService.StatusFlag.AUTOTRANSLATED);
                 if (bitFlag.isContainsFlag(a.getStatus(), BitFlagService.StatusFlag.DEFAULT_WAS_CHANGED))
                     bitFlag.dropFlag(a, BitFlagService.StatusFlag.DEFAULT_WAS_CHANGED);
-                termLangRepository.save(a);
             }
         });
+        termLangRepository.saveAll(projectLang.getTermLangs());
         projectLangRepository.save(projectLang);
         logger.info("User "+user.getUsername()+" made selected term langs empty");
         return projectLang;
@@ -183,13 +183,14 @@ public class ProjectLangController {
                                 @RequestParam(required = false) String term,
                                 @RequestParam(required = false) Boolean untranslated,
                                 @RequestParam(required = false) Boolean fuzzy,
+                                @RequestParam(required = false) Boolean def_edited,
                                 @RequestParam(required = false) String sort_state,
                                 @AuthenticationPrincipal User user,
                                 @PageableDefault(sort = {"id"}, direction = Sort.Direction.ASC) Pageable page,
                                 HttpServletResponse response) throws IOException {
         logger.info("User "+user.getUsername()+" is trying to filter the project lang");
         if (accessService.isNotProjectLangOrAccessDenied(projectLang, user, response, false)) return null;
-        return projectLangService.doFilter(projectLang, term, untranslated, fuzzy, sort_state, page.getPageNumber(), page.getPageSize());
+        return projectLangService.doFilter(projectLang, term, untranslated, fuzzy, def_edited, sort_state, page.getPageNumber(), page.getPageSize());
     }
 
     @PostMapping("/{id}/flush-translations")
@@ -229,6 +230,12 @@ public class ProjectLangController {
         ProjectLang lang = projectLangRepository.findById(from);
         String langFrom = lang.getLang().getLangDef().toLowerCase();
         String langTo = projectLang.getLang().getLangDef().toLowerCase();
+        List<ProjectLang> projectLangsBuffer = new ArrayList<>();
+        if(projectLang.isDefault()){
+            projectLangsBuffer = projectLangRepository.findByProjectId(projectLang.getProjectId());
+            projectLangsBuffer.remove(projectLang);
+        }
+        final List<ProjectLang> projectLangs = new ArrayList<>(projectLangsBuffer);
         lang.getTermLangs().forEach(a -> {
             projectLang.getTermLangs().forEach(b -> {
                 if (b.getTerm().getTermValue().equals(a.getTerm().getTermValue()) && b.isSelected() && !a.getValue().equals("")) {
@@ -247,7 +254,21 @@ public class ProjectLangController {
                             bitFlag.addFlag(b, BitFlagService.StatusFlag.AUTOTRANSLATED);
                             b.getFlags().add(BitFlagService.StatusFlag.AUTOTRANSLATED.name());
                         }
-                        termLangRepository.save(b);
+                        if(projectLang.isDefault()){
+                            projectLangs.forEach(c->{
+                                c.getTermLangs().forEach(d-> {
+                                    if(d.getTerm().getTermValue().equals(b.getTerm().getTermValue()) && !d.getValue().equals("")){
+                                        if (!bitFlag.isContainsFlag(d.getStatus(), BitFlagService.StatusFlag.DEFAULT_WAS_CHANGED)) {
+                                            bitFlag.addFlag(d, BitFlagService.StatusFlag.DEFAULT_WAS_CHANGED);
+                                            d.getFlags().add(BitFlagService.StatusFlag.DEFAULT_WAS_CHANGED.name());
+                                        }
+                                    }
+                                });
+                            });
+                        }
+                        b.setModifier(user);
+                        b.setModifiedDate();
+                        //termLangRepository.save(b);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -255,6 +276,7 @@ public class ProjectLangController {
             });
 
         });
+        termLangRepository.saveAll(projectLang.getTermLangs());
         ProjectLang stats = projectLangRepository.findById((long) projectLang.getId());
         projectLangService.setCounts(stats);
         projectLang.setTranslatedCount(stats.getTranslatedCount());
@@ -266,10 +288,17 @@ public class ProjectLangController {
     @GetMapping("/{id}/export")
     public void download(@PathVariable("id") ProjectLang projectLang,
                          @AuthenticationPrincipal User user,
+                         @RequestParam String type,
                          HttpServletResponse response) throws IOException {
         logger.info("User "+user.getUsername()+" is trying to export the project lang");
         if (accessService.isNotProjectLangOrAccessDenied(projectLang, user, response, false)) return;
-        File file = projectLangService.createPropertiesFile(projectLang);
+        File file;
+        switch (type){
+            case "json": file = projectLangService.createJSONFile(projectLang); break;
+            case "properties": file = projectLangService.createPropertiesFile(projectLang); break;
+            default: return;
+        }
+
         if (file.exists()) {
             String mimeType = URLConnection.guessContentTypeFromName(file.getName());
             if (mimeType == null) {
