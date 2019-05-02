@@ -26,3 +26,5 @@ https://github.com/ChiZ-z/ILocal-client
   1.2 [Парное программирование](https://github.com/IvanTaleika/ILocal/blob/master/documents/requirements/Pair_programming.md)
 
   1.3 [Улучшение UX](https://github.com/IvanTaleika/ILocal/blob/master/documents/requirements/Ux.md)
+
+  1.4 [Технический долг](https://github.com/IvanTaleika/ILocal/blob/master/documents/requirements/Technical_debt.md)
