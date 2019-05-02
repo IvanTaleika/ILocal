@@ -1,7 +1,9 @@
 package ILocal.service;
 
-import ILocal.repository.UserRepository;
+
 import ILocal.entity.User;
+import ILocal.repository.UserRepository;
+import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -9,6 +11,10 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -21,7 +27,7 @@ public class UserService implements UserDetailsService {
     private PasswordEncoderMD5 passwordEncoderMD5;
 
     @Autowired
-    private ParseFile parseFile;
+    private ValidatorService validatorService;
 
     @Autowired
     private MailService mailService;
@@ -30,7 +36,6 @@ public class UserService implements UserDetailsService {
     private UserRepository userRepository;
 
     public void updateUser(User user, User editUser) throws NoSuchAlgorithmException {
-        user.setCompany(editUser.getCompany());
         if (!editUser.getEmail().equals(user.getEmail()) &&
                 !StringUtils.isEmpty(editUser.getEmail()) &&
                 checkEmail(user.getEmail())) {
@@ -45,17 +50,13 @@ public class UserService implements UserDetailsService {
         userRepository.save(user);
     }
 
-    public boolean registrationUser(User user) throws NoSuchAlgorithmException {
-        User userFromDb = userRepository.findByUsername(user.getUsername());
-        if (userFromDb != null) {
-            return false;
-        }
-        /*if (!StringUtils.isEmpty(user.getEmail()) && checkEmail(user.getEmail())) {
-            sendActivationLinkToEmail(user);
-        }*/
+    public User registrationUser(User user) throws NoSuchAlgorithmException {
+// if (!StringUtils.isEmpty(user.getEmail()) && checkEmail(user.getEmail())) {
+// sendActivationLinkToEmail(user);
+// }
         user.setPassword(passwordEncoderMD5.createPassword(user.getPassword()));
         userRepository.save(user);
-        return true;
+        return user;
     }
 
     public boolean activateUser(String code) {
@@ -77,18 +78,50 @@ public class UserService implements UserDetailsService {
     public void sendActivationLinkToEmail(User user) {
         user.setActivationCode(UUID.randomUUID().toString());
         String message = "Hello " + user.getUsername() + "\t\tNice to meet you!\tPlease, visit this link to " +
-                "activate your account: http://localhost:8080/user/activate/" + user.getActivationCode();
+                "activate your account: http://172.20.143.14/user/activate/" + user.getActivationCode();
         mailService.send(user.getEmail(), "Activate account", message);
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByUsername(username);
-
         if (user == null) {
             throw new UsernameNotFoundException("User not found");
         }
+        return user;
+    }
 
+    public void changePassword(User user, User usr, HttpServletResponse response) throws IOException, NoSuchAlgorithmException {
+        if(!validatorService.validatePassword(usr.getOldPassword()) || !validatorService.validatePassword(usr.getPassword()) || !validatorService.validatePassword(usr.getRepeatPassword())){
+            response.sendError(400, "Bad credentials");
+            return;
+        }
+        if(!passwordEncoderMD5.createPassword(usr.getOldPassword()).equals(user.getPassword())){
+            response.sendError(421, "Incorrect password");
+            return;
+        }
+        if(!usr.getPassword().equals(usr.getRepeatPassword())){
+            response.sendError(422, "New passwords aren't equals");
+            return;
+        }
+        user.setPassword(passwordEncoderMD5.createPassword(usr.getPassword()));
+        userRepository.save(user);
+    }
+
+    public User updateUserAvatar(User user, User editUser,HttpServletResponse response) throws IOException  {
+        String filename = UUID.randomUUID().toString() + ".jpg";
+        File file = new File("temp/images/"+filename);
+        try(FileOutputStream fos = new FileOutputStream(file)) {
+            byte[] data = Base64.decodeBase64(editUser.getAvatar().substring(22));
+            fos.write(data);
+        }catch (IOException e){
+            response.sendError(400);
+            return null;
+        }
+        File deleteFile = new File("temp/images/"+user.getProfilePhoto());
+        deleteFile.delete();
+        user.setProfilePhoto(filename);
+        userRepository.save(user);
         return user;
     }
 }

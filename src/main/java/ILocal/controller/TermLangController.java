@@ -1,24 +1,25 @@
 package ILocal.controller;
 
+
+import ILocal.entity.Project;
+import ILocal.entity.TermLang;
+import ILocal.entity.User;
 import ILocal.repository.ProjectLangRepository;
 import ILocal.repository.ProjectRepository;
 import ILocal.repository.TermLangRepository;
 import ILocal.repository.UserRepository;
-import ILocal.entity.Project;
-import ILocal.entity.TermLang;
-import ILocal.entity.User;
 import ILocal.service.BitFlagService;
+import ILocal.service.ProjectLangService;
+import ILocal.service.StatService;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.sql.Date;
-import java.util.Calendar;
 import java.util.List;
 
-@CrossOrigin(origins = "http://localhost:4200", maxAge = 3600)
 @RestController
 @RequestMapping("/term-lang")
 public class TermLangController {
@@ -38,26 +39,32 @@ public class TermLangController {
     @Autowired
     private BitFlagService bitFlagService;
 
-    @GetMapping
-    public List<TermLang> getAll() {
-        return termLangRepository.findAll();
-    }
+    @Autowired
+    private ProjectLangService projectLangService;
+
+    @Autowired
+    private StatService statService;
+
+    private static final Logger logger = org.apache.log4j.Logger.getLogger(TermLangController.class);
 
     @PutMapping("/{id}/update")
-    public void updateValue(@PathVariable("id") TermLang termLang,
-                            @RequestBody(required = false) String newVal,
-                            @RequestParam(required = false) long writer_id,
-                            @AuthenticationPrincipal User user,
-                            HttpServletResponse response) throws IOException {
+    public TermLang updateValue(@PathVariable("id") TermLang termLang,
+                                @RequestBody(required = false) String newVal,
+                                @RequestParam(required = false) long writer_id,
+                                @AuthenticationPrincipal User user,
+                                HttpServletResponse response) throws IOException {
+        logger.info("User "+user.getUsername()+" is trying to update term lang value");
         if (termLang == null) {
+            logger.error("Term lang not found");
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Term lang is not found!");
-            return;
+            return null;
         }
         if (accessDenied(termLang, user)) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied!");
-            return;
+            return null;
         }
         if (newVal == null) {
+            logger.error("New value is null");
             if (bitFlagService.isContainsFlag(termLang.getStatus(), BitFlagService.StatusFlag.FUZZY)) {
                 bitFlagService.dropFlag(termLang, BitFlagService.StatusFlag.FUZZY);
             }
@@ -65,10 +72,10 @@ public class TermLangController {
         }
         if (bitFlagService.isContainsFlag(termLang.getStatus(), BitFlagService.StatusFlag.AUTOTRANSLATED))
             bitFlagService.dropFlag(termLang, BitFlagService.StatusFlag.AUTOTRANSLATED);
-
+        String oldValue = termLang.getValue();
         termLang.setValue(newVal);
-        termLang.setModifier(userRepository.findById(writer_id));
-        termLang.setModifiedDate(new Date(Calendar.getInstance().getTime().getTime()));
+        termLang.setModifier(user);
+        termLang.setModifiedDate();
         if (projectLangRepository.findById(termLang.getProjectLangId()).isDefault()) {
             List<TermLang> termLangs = termLangRepository.findByTerm(termLang.getTerm());
             termLangs.remove(termLang);
@@ -81,16 +88,23 @@ public class TermLangController {
                 bitFlagService.dropFlag(termLang, BitFlagService.StatusFlag.DEFAULT_WAS_CHANGED);
         }
         termLangRepository.save(termLang);
+        projectLangService.setFlagsToTerm(termLang);
+        statService.simpleEdit(user, oldValue, newVal, termLang.getTerm().getProjectId());
+        logger.info("User "+user.getUsername()+" updated term lang value");
+        return termLang;
     }
 
     @PutMapping("/{id}/fuzzy")
     public void fuzzy(@PathVariable("id") TermLang termLang, @AuthenticationPrincipal User user,
                       @RequestParam Boolean fuzzy, HttpServletResponse response) throws IOException {
+        logger.info("User "+user.getUsername()+" is trying to mark term lang like fuzzy");
         if (termLang == null) {
+            logger.error("Term lang not found");
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Term lang is not found!");
             return;
         }
         if (accessDenied(termLang, user)) {
+            logger.error("Access denied");
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied");
             return;
         }
@@ -102,6 +116,7 @@ public class TermLangController {
                 bitFlagService.dropFlag(termLang, BitFlagService.StatusFlag.FUZZY);
         }
         termLangRepository.save(termLang);
+        logger.info("User "+user.getUsername()+" marked term lang like fuzzy");
     }
 
     private boolean accessDenied(TermLang term, User user) {

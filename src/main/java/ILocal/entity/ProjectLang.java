@@ -1,8 +1,9 @@
 package ILocal.entity;
 
+import com.fasterxml.jackson.annotation.JsonView;
+import ILocal.entity.UI.View;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
-import org.springframework.data.domain.Persistable;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -10,27 +11,26 @@ import java.util.List;
 
 @Entity
 @Table(name = "project_lang")
-public class ProjectLang implements Persistable {
+@JsonView(View.ProjectItem.class)
+public class ProjectLang {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private Long projectId;
-
-    @Transient
-    private String projectName;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "lang_id")
     private Lang lang;
 
-    @OneToMany(mappedBy = "projectLangId",  fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "projectLangId",  fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     @Fetch(value = FetchMode.SUBSELECT)
     private List<TermLang> termLangs = new ArrayList<>();
 
     private boolean isDefault;
 
+    @Transient
+    private String projectName;
     @Transient
     private long termsCount;
     @Transient
@@ -87,11 +87,6 @@ public class ProjectLang implements Persistable {
 
     public void setProjectName(String projectName) {
         this.projectName = projectName;
-    }
-
-    @Override
-    public boolean isNew() {
-        return true;
     }
 
     public long getTermsCount() {

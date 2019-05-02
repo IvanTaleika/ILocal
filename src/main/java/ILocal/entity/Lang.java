@@ -1,13 +1,17 @@
 package ILocal.entity;
 
+import ILocal.entity.UI.View;
+import com.fasterxml.jackson.annotation.JsonView;
+
 import javax.persistence.*;
 
 @Entity
 @Table(name = "lang")
+@JsonView(View.ProjectItem.class)
 public class Lang {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String langName;

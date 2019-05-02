@@ -1,11 +1,10 @@
 package ILocal.config;
 
+
 import ILocal.security.JwtAuthenticationEntryPoint;
 import ILocal.security.JwtAuthenticationProvider;
 import ILocal.security.JwtAuthenticationTokenFilter;
 import ILocal.security.JwtSuccessHandler;
-import ILocal.service.PasswordEncoderMD5;
-import ILocal.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,13 +28,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private JwtAuthenticationProvider authenticationProvider;
 
     @Autowired
-    private UserService userService;
-
-    @Autowired
     private JwtAuthenticationEntryPoint entryPoint;
-
-    @Autowired
-    private PasswordEncoderMD5 passwordEncoderMD5;
 
     @Bean
     public AuthenticationManager authenticationManager() {
@@ -56,10 +49,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http.headers().cacheControl();
         http.cors().and().csrf().disable()
                 .authorizeRequests()
-                .antMatchers("/auth/**","/logout/**").permitAll()
-                .anyRequest().authenticated()
+                .antMatchers("/auth/**", "/logout/**", "/image/**").permitAll()
+                .antMatchers("/**").authenticated()
                 .and()
-                .addFilterBefore(authenticationTokenFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(authenticationTokenFilter(), UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling().authenticationEntryPoint(entryPoint)
                 .and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);

@@ -1,18 +1,27 @@
 package ILocal.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonView;
+import ILocal.entity.UI.View;
+
 import javax.persistence.*;
-import java.sql.Date;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Entity
 @Table(name = "term_lang")
-
+@JsonView(View.ProjectItem.class)
 public class TermLang {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private Long projectLangId;
+    private int status;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm", timezone = "GMT+03:00")
+    private Date modifiedDate;
+    private String value;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "term_id")
@@ -22,9 +31,9 @@ public class TermLang {
     @JoinColumn(name = "lang_id")
     private Lang lang;
 
-    private Long projectLangId;
-
-    private int status;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "modified_by")
+    private User modifier;
 
     @Transient
     private List<String> flags = new ArrayList<>();
@@ -32,15 +41,8 @@ public class TermLang {
     @Transient
     private boolean selected;
 
-    private String value;
-
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name="modified_by")
-    private User modifier;
-
-    private Date modifiedDate;
-
-    public TermLang(){}
+    public TermLang() {
+    }
 
     public Long getId() {
         return id;
@@ -86,8 +88,8 @@ public class TermLang {
         return modifiedDate;
     }
 
-    public void setModifiedDate(Date modifiedDate) {
-        this.modifiedDate = modifiedDate;
+    public void setModifiedDate() {
+        this.modifiedDate = new Date();
     }
 
     public long getProjectLangId() {

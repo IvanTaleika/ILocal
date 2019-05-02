@@ -1,43 +1,85 @@
 package ILocal.entity;
 
+import ILocal.entity.UI.View;
+import com.fasterxml.jackson.annotation.JsonView;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 @Entity
 @Table(name = "user")
 public class User implements UserDetails {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
-    private String email;
-    private String username;
-    private String password;
-    private String firstName;
-    private String lastName;
-    private String company;
-    private String profilePhoto;
-    private String activationCode;
-    private boolean mailingAccess;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@JsonView(View.ProjectItem.class)
+	private Long id;
+	private String email;
+
+	@JsonView(View.ProjectItem.class)
+	private String username;
+
+	private String password;
+
+	@JsonView(View.ProjectItem.class)
+	private String firstName;
+
+	@JsonView(View.ProjectItem.class)
+	private String lastName;
+
+    @JsonView(View.ProjectItem.class)
+	private String profilePhoto;
+
+	private String refreshToken;
+	private String activationCode;
+	private boolean mailingAccess;
+
+    @OneToMany(mappedBy = "userId", fetch = FetchType.EAGER)
+    @Fetch(value = FetchMode.SUBSELECT)
+    private List<Contact> contacts = new ArrayList<>();
+
+    @OneToMany(mappedBy = "userId", fetch = FetchType.EAGER)
+    @Fetch(value = FetchMode.SUBSELECT)
+    private List<UserLang> langs = new ArrayList<>();
+
+    @OneToMany(mappedBy = "userId", fetch = FetchType.EAGER)
+    @Fetch(value = FetchMode.SUBSELECT)
+    private List<JobExperience> jobs = new ArrayList<>();
 
     @Transient
     private String token;
     @Transient
     private Collection<? extends GrantedAuthority> authorities;
+    @Transient
+    private String repeatPassword;
+    @Transient
+    private String oldPassword;
+    @Transient
+    private ResultStat resultStat;
+    @Transient
+    private String avatar;
 
-    public User() {
-    }
+    public User(){}
 
     public User(String userName, long id, String token, List<GrantedAuthority> grantedAuthorities) {
         this.username = userName;
         this.id = id;
-        this.token= token;
+        this.token = token;
         this.authorities = grantedAuthorities;
     }
 
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
+    }
 
     public long getId() {
         return id;
@@ -59,10 +101,18 @@ public class User implements UserDetails {
         return username;
     }
 
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
+	public String getRefreshToken() {
+		return refreshToken;
+	}
+
+	public void setRefreshToken(String refreshToken) {
+		this.refreshToken = refreshToken;
+	}
+
+	@Override
+	public boolean isAccountNonExpired() {
+		return true;
+	}
 
     @Override
     public boolean isAccountNonLocked() {
@@ -112,17 +162,9 @@ public class User implements UserDetails {
         this.lastName = lastName;
     }
 
-    public String getCompany() {
-        return company;
-    }
-
-    public void setCompany(String company) {
-        this.company = company;
-    }
-
-    public String getProfilePhoto() {
-        return profilePhoto;
-    }
+	public String getProfilePhoto() {
+		return profilePhoto;
+	}
 
     public void setProfilePhoto(String profilePhoto) {
         this.profilePhoto = profilePhoto;
@@ -142,5 +184,65 @@ public class User implements UserDetails {
 
     public void setMailingAccess(boolean mailingAccess) {
         this.mailingAccess = mailingAccess;
+    }
+
+    public String getRepeatPassword() {
+        return repeatPassword;
+    }
+
+    public void setRepeatPassword(String repeatPassword) {
+        this.repeatPassword = repeatPassword;
+    }
+
+    public List<Contact> getContacts() {
+        return contacts;
+    }
+
+    public void setContacts(List<Contact> contacts) {
+        this.contacts = contacts;
+    }
+
+    public List<UserLang> getLangs() {
+        return langs;
+    }
+
+    public void setLangs(List<UserLang> langs) {
+        this.langs = langs;
+    }
+
+    public List<JobExperience> getJobs() {
+        return jobs;
+    }
+
+    public void setJobs(List<JobExperience> jobs) {
+        this.jobs = jobs;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    public void setAuthorities(Collection<? extends GrantedAuthority> authorities) {
+        this.authorities = authorities;
+    }
+
+    public ResultStat getResultStat() {
+        return resultStat;
+    }
+
+    public void setResultStat(ResultStat resultStat) {
+        this.resultStat = resultStat;
+    }
+
+    public String getOldPassword() {
+        return oldPassword;
+    }
+
+    public void setOldPassword(String oldPassword) {
+        this.oldPassword = oldPassword;
     }
 }

@@ -1,21 +1,24 @@
 package ILocal.entity;
 
 
+import ILocal.entity.UI.View;
+import com.fasterxml.jackson.annotation.JsonView;
 
 import javax.persistence.*;
 
 @Entity
 @Table(name = "project_contributor")
+@JsonView(View.ProjectItem.class)
 public class ProjectContributor {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id")
     private User contributor;
-    private Long project;
+    private Long projectId;
 
     @Transient
     private String projectName;
@@ -57,11 +60,11 @@ public class ProjectContributor {
         this.role = role;
     }
 
-    public long getProject() {
-        return project;
+    public long getProjectId() {
+        return projectId;
     }
 
-    public void setProject(Long project) {
-        this.project = project;
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
     }
 }

@@ -1,13 +1,12 @@
 package ILocal.controller;
 
+
+import ILocal.entity.*;
 import ILocal.repository.ProjectContributorRepository;
 import ILocal.repository.ProjectRepository;
 import ILocal.repository.UserRepository;
-import ILocal.entity.ContributorRole;
-import ILocal.entity.Project;
-import ILocal.entity.ProjectContributor;
-import ILocal.entity.User;
 import ILocal.service.MailService;
+import ILocal.service.StatService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.util.StringUtils;
@@ -19,7 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@CrossOrigin(origins = "http://localhost:4200", maxAge = 3600)
 @RestController
 @RequestMapping("/contributors")
 public class ContributorController {
@@ -35,6 +33,9 @@ public class ContributorController {
 
     @Autowired
     private ProjectRepository projectRepository;
+
+    @Autowired
+    private StatService statService;
 
     @GetMapping("/project/{id}")
     public List<ProjectContributor> getAll(@PathVariable("id") Project project, @AuthenticationPrincipal User user,
@@ -85,7 +86,7 @@ public class ContributorController {
             response.sendError(404, "Contributor not found!!");
             return;
         }
-        Project project = projectRepository.findById(contributor.getProject());
+        Project project = projectRepository.findById(contributor.getProjectId());
         if (project.getAuthor().getId() != user.getId()) {
             response.sendError(403, "Access denied!");
             return;
@@ -98,11 +99,11 @@ public class ContributorController {
     public void deleteContributor(@RequestParam long id, HttpServletResponse response,
                                   @AuthenticationPrincipal User user) throws IOException {
         ProjectContributor contributor = contributorRepository.findById(id);
-        if(contributor == null){
+        if (contributor == null) {
             response.sendError(404, "Contributor not found!!");
             return;
         }
-        Project project = projectRepository.findById(contributor.getProject());
+        Project project = projectRepository.findById(contributor.getProjectId());
         if (project.getAuthor().getId() != user.getId()) {
             response.sendError(403, "Access denied!");
             return;
@@ -123,11 +124,25 @@ public class ContributorController {
 
     @PostMapping("/{id}/notify-contributor")
     public void notifyContributor(@PathVariable("id") ProjectContributor contributor, @RequestBody String message) {
-        Project project = projectRepository.findById(contributor.getProject());
+        Project project = projectRepository.findById(contributor.getProjectId());
         if (!StringUtils.isEmpty(contributor.getContributor().getEmail())) {
             mailService.send(contributor.getContributor().getEmail(), project.getProjectName() +
                     " notification", message);
         }
+    }
+
+    @GetMapping("/{id}/stats")
+    public ResultStat getContributorStats(@PathVariable("id") ProjectContributor contributor, @AuthenticationPrincipal User user, HttpServletResponse response) throws IOException {
+        if (contributor == null) {
+            response.sendError(404, "Contributor not found!!");
+            return null;
+        }
+        Project project = projectRepository.findById(contributor.getProjectId());
+        if (project.getAuthor().getId() != user.getId()) {
+            response.sendError(403, "Access denied!");
+            return null;
+        }
+        return statService.getAllUserStatsInProject(contributor.getContributor(), project.getId());
     }
 
 }

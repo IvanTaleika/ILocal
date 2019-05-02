@@ -1,5 +1,6 @@
 package ILocal.config;
 
+
 import ILocal.service.Translator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

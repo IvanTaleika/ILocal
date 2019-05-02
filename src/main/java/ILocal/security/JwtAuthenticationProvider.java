@@ -1,8 +1,7 @@
 package ILocal.security;
 
+
 import ILocal.repository.UserRepository;
-import ILocal.entity.JwtAuthenticationToken;
-import ILocal.entity.JwtUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider;
@@ -32,10 +31,9 @@ public class JwtAuthenticationProvider extends AbstractUserDetailsAuthentication
     protected UserDetails retrieveUser(String username, UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken) throws AuthenticationException {
         JwtAuthenticationToken jwtAuthenticationToken = (JwtAuthenticationToken) usernamePasswordAuthenticationToken;
         String token = jwtAuthenticationToken.getToken();
-        JwtUser jwtUser = validator.validate(token);
-        if (jwtUser == null) {
+        JwtUser jwtUser = validator.validateAccess(token);
+        if (jwtUser == null)
             throw new RuntimeException("JWT Token is incorrect");
-        }
         List<GrantedAuthority> grantedAuthorities = AuthorityUtils
                 .commaSeparatedStringToAuthorityList("ROLE_ADMIN");
         return userRepository.findByUsername(jwtUser.getUserName());
