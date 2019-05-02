@@ -47,12 +47,12 @@
 
 **До**
 
- ![]()
+ ![](https://github.com/IvanTaleika/ILocal/blob/chizh/documents/gifs/NotRegistration.gif)
  
   
 **После**
 
- ![]()
+ ![](https://github.com/IvanTaleika/ILocal/blob/chizh/documents/gifs/RightRegistration.gif)
  
  ##
  
@@ -60,12 +60,12 @@
  
  **До**
  
-  ![]()
+  ![](https://github.com/IvanTaleika/ILocal/blob/chizh/documents/gifs/NotRightSingIn.gif)
   
    
  **После**
  
-  ![]()
+  ![](https://github.com/IvanTaleika/ILocal/blob/chizh/documents/gifs/RightSignIn.gif)
   
   ##
  
@@ -73,12 +73,12 @@
   
   **До**
   
-   ![]()
+   ![](https://github.com/IvanTaleika/ILocal/blob/chizh/documents/gifs/NotAddFlags.gif)
    
     
   **После**
   
-   ![]()
+   ![](https://github.com/IvanTaleika/ILocal/blob/chizh/documents/gifs/AddFlags.gif)
    
    ##
   Добавление комментариев.
@@ -86,11 +86,11 @@
      
    **После**
    
-   ![]()
+   ![](https://github.com/IvanTaleika/ILocal/blob/chizh/documents/gifs/NotAddComments.gif)
     
    ##
  
  
   2. Вход в аккаут. Добавление проекта. Добавление языка. Импорт файла. Перевод ключа.(частичный функционал приложения)
   
- ![]()
+ ![](https://github.com/IvanTaleika/ILocal/blob/chizh/documents/gifs/All.gif)
