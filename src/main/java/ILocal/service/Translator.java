@@ -6,6 +6,8 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Translator {
 
@@ -24,6 +26,25 @@ public class Translator {
             response.append(inputLine);
         }
         in.close();
-        return response.toString();
+        return correctResult(response.toString());
+    }
+
+    private String correctResult(String result){
+        Matcher matcher = Pattern.compile("<\\/.+>").matcher(result);
+        while(matcher.find()){
+           result = result.replace(matcher.group(), matcher.group().replaceAll("\\s+", ""));
+        }
+        matcher = Pattern.compile("<[^\\/].+>").matcher(result);
+        while(matcher.find()){
+            result = result.replace(matcher.group(), matcher.group().replaceAll("\\s{2,}", " "));
+        }
+        matcher = Pattern.compile("<[^\\/].+>.+\\s*<\\/.+>").matcher(result);
+        while(matcher.find()){
+            String buffer = matcher.group();
+            buffer = buffer.replaceAll(">\\s+", ">");
+            buffer = buffer.replaceAll("\\s+<", "<");
+            result = result.replace(matcher.group(), buffer);
+        }
+        return result;
     }
 }

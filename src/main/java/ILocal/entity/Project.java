@@ -1,50 +1,61 @@
 package ILocal.entity;
 
-import org.hibernate.annotations.*;
+import ILocal.entity.UI.View;
+import com.fasterxml.jackson.annotation.JsonView;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import javax.persistence.*;
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import java.sql.Date;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 @Entity
-@Table(name="project")
+@Table(name = "project")
+@JsonView(View.ProjectItem.class)
 public class Project {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String projectName;
     private String description;
-    private Date creationDate;
-    private Date lastUpdate;
+    private Timestamp creationDate;
+    private Timestamp lastUpdate;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name="author_id")
+    @JoinColumn(name = "author_id")
     private User author;
 
-    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "projectId", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     @Fetch(value = FetchMode.SUBSELECT)
-    private List<ProjectContributor> contributors =  new ArrayList<>();
-
-    @OneToMany(mappedBy = "projectId",  fetch = FetchType.EAGER)
-    @Fetch(value = FetchMode.SUBSELECT)
-    private List<ProjectLang> projectLangs =  new ArrayList<>();
+    private List<ProjectContributor> contributors = new ArrayList<>();
 
     @OneToMany(mappedBy = "projectId", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @Fetch(value = FetchMode.SUBSELECT)
-    private List<Term> terms =  new ArrayList<>();
+    private List<ProjectLang> projectLangs = new ArrayList<>();
+
+    @OneToMany(mappedBy = "projectId", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @Fetch(value = FetchMode.SUBSELECT)
+    private List<Term> terms = new ArrayList<>();
 
     @Transient
     private long termsCount;
     @Transient
+    private long searchedTermsCount;
+    @Transient
+    private long translationsCount;
+    @Transient
     private long pagesCount;
+    @Transient
+    private double progress;
+    @Transient
+    private List<Term> searchedTerms = new ArrayList<>();
 
-    public Project(){}
+    public Project() {
+    }
 
     public Long getId() {
         return id;
@@ -70,20 +81,20 @@ public class Project {
         this.description = description;
     }
 
-    public Date getCreationDate() {
+    public Timestamp getCreationDate() {
         return creationDate;
     }
 
-    public void setCreationDate(Date creationDate) {
-        this.creationDate = creationDate;
+    public void setCreationDate() {
+        this.creationDate = new Timestamp(Calendar.getInstance().getTimeInMillis());
     }
 
-    public Date getLastUpdate() {
+    public Timestamp getLastUpdate() {
         return lastUpdate;
     }
 
-    public void setLastUpdate(Date lastUpdate) {
-        this.lastUpdate = lastUpdate;
+    public void setLastUpdate() {
+        this.lastUpdate = new Timestamp(Calendar.getInstance().getTimeInMillis());
     }
 
     public User getAuthor() {
@@ -132,5 +143,37 @@ public class Project {
 
     public void setPagesCount(long pagesCount) {
         this.pagesCount = pagesCount;
+    }
+
+    public List<Term> getSearchedTerms() {
+        return searchedTerms;
+    }
+
+    public void setSearchedTerms(List<Term> searchedTerms) {
+        this.searchedTerms = searchedTerms;
+    }
+
+    public double getProgress() {
+        return progress;
+    }
+
+    public void setProgress(double progress) {
+        this.progress = progress;
+    }
+
+    public long getTranslationsCount() {
+        return translationsCount;
+    }
+
+    public void setTranslationsCount(long translationsCount) {
+        this.translationsCount = translationsCount;
+    }
+
+    public long getSearchedTermsCount() {
+        return searchedTermsCount;
+    }
+
+    public void setSearchedTermsCount(long searchedTermsCount) {
+        this.searchedTermsCount = searchedTermsCount;
     }
 }

@@ -1,5 +1,8 @@
 package ILocal.entity;
 
+import com.fasterxml.jackson.annotation.JsonView;
+import ILocal.entity.UI.View;
+
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -7,20 +10,28 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "term")
+@JsonView(View.ProjectItem.class)
 public class Term {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private Long projectId;
+
     private String termValue;
 
     @Transient
     private List<TermLang> translations = new ArrayList<>();
 
     @Transient
+    private List<TermComment> comments = new ArrayList<>();
+
+    @Transient
     private boolean selected = false;
+
+    @Transient
+    private long commentsCount;
 
     public Term(){}
 
@@ -75,5 +86,21 @@ public class Term {
 
     public void setSelected(boolean selected) {
         this.selected = selected;
+    }
+
+    public List<TermComment> getComments() {
+        return comments;
+    }
+
+    public void setComments(List<TermComment> comments) {
+        this.comments = comments;
+    }
+
+    public long getCommentsCount() {
+        return commentsCount;
+    }
+
+    public void setCommentsCount(long commentsCount) {
+        this.commentsCount = commentsCount;
     }
 }

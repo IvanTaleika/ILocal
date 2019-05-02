@@ -24,5 +24,8 @@ public class ResponseService {
         response.sendError(HttpServletResponse.SC_FORBIDDEN,"Forbidden error");
     }
 
+    public void sendErrorFile(HttpServletResponse response) throws IOException{
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST,"Bad file");
+    }
 
 }

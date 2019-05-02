@@ -1,5 +1,6 @@
 package ILocal.service;
 
+
 import ILocal.entity.TermLang;
 import org.springframework.stereotype.Service;
 

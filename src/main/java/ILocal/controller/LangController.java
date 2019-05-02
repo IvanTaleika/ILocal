@@ -1,13 +1,13 @@
 package ILocal.controller;
 
-import ILocal.repository.LangRepository;
+
 import ILocal.entity.Lang;
+import ILocal.repository.LangRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@CrossOrigin(origins = "http://localhost:4200", maxAge = 3600)
 @RestController
 @RequestMapping("/lang")
 public class LangController {
