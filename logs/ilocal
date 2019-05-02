@@ -1,0 +1,272 @@
+2019-05-02 03:59:19,376 +0300 [http-nio-8080-exec-1] INFO  (AuthenticationController.java:89) - Try to authenticate exist user
+ 2019-05-02 03:59:19,653 +0300 [http-nio-8080-exec-2] INFO  (ProjectController.java:73) - User qwerty is trying to get the projects
+ 2019-05-02 03:59:22,488 +0300 [http-nio-8080-exec-10] INFO  (ProjectController.java:81) - User qwerty is trying to get the project
+ 2019-05-02 03:59:22,489 +0300 [http-nio-8080-exec-10] INFO  (ProjectController.java:86) - User qwerty got the project a sdf
+ 2019-05-02 03:59:26,428 +0300 [http-nio-8080-exec-4] INFO  (ProjectController.java:73) - User qwerty is trying to get the projects
+ 2019-05-02 04:09:54,182 +0300 [http-nio-8080-exec-5] INFO  (AuthenticationController.java:89) - Try to authenticate exist user
+ 2019-05-02 04:09:54,396 +0300 [http-nio-8080-exec-8] INFO  (ProjectController.java:73) - User qwerty is trying to get the projects
+ 2019-05-02 04:10:45,064 +0300 [http-nio-8080-exec-3] INFO  (AuthenticationController.java:89) - Try to authenticate exist user
+ 2019-05-02 04:10:45,070 +0300 [http-nio-8080-exec-3] ERROR (AuthenticationController.java:103) - Incorrect username, or email,  or password
+ 2019-05-02 04:11:03,938 +0300 [http-nio-8080-exec-4] INFO  (AuthenticationController.java:89) - Try to authenticate exist user
+ 2019-05-02 04:11:03,944 +0300 [http-nio-8080-exec-4] ERROR (AuthenticationController.java:103) - Incorrect username, or email,  or password
+ 2019-05-02 04:11:04,770 +0300 [http-nio-8080-exec-2] INFO  (AuthenticationController.java:89) - Try to authenticate exist user
+ 2019-05-02 04:11:04,777 +0300 [http-nio-8080-exec-2] ERROR (AuthenticationController.java:103) - Incorrect username, or email,  or password
+ 2019-05-02 04:11:09,533 +0300 [http-nio-8080-exec-5] INFO  (AuthenticationController.java:89) - Try to authenticate exist user
+ 2019-05-02 04:11:09,648 +0300 [http-nio-8080-exec-7] INFO  (ProjectController.java:73) - User qwerty is trying to get the projects
+ 2019-05-02 04:11:24,637 +0300 [http-nio-8080-exec-9] INFO  (AuthenticationController.java:89) - Try to authenticate exist user
+ 2019-05-02 04:11:24,688 +0300 [http-nio-8080-exec-3] INFO  (ProjectController.java:73) - User qwerty is trying to get the projects
+ 2019-05-02 04:12:13,269 +0300 [http-nio-8080-exec-1] INFO  (AuthenticationController.java:53) - Try to register new user
+ 2019-05-02 04:12:13,354 +0300 [http-nio-8080-exec-3] INFO  (ProjectController.java:73) - User qwerty11 is trying to get the projects
+ 2019-05-02 04:12:30,445 +0300 [http-nio-8080-exec-8] INFO  (AuthenticationController.java:89) - Try to authenticate exist user
+ 2019-05-02 04:12:30,496 +0300 [http-nio-8080-exec-7] INFO  (ProjectController.java:73) - User qwerty is trying to get the projects
+ 2019-05-02 04:12:32,024 +0300 [http-nio-8080-exec-3] INFO  (ProjectController.java:81) - User qwerty is trying to get the project
+ 2019-05-02 04:12:32,024 +0300 [http-nio-8080-exec-3] INFO  (ProjectController.java:86) - User qwerty got the project a sdf
+ 2019-05-02 04:12:42,415 +0300 [http-nio-8080-exec-4] INFO  (ProjectController.java:73) - User qwerty is trying to get the projects
+ 2019-05-02 04:12:57,386 +0300 [http-nio-8080-exec-8] INFO  (AuthenticationController.java:89) - Try to authenticate exist user
+ 2019-05-02 04:12:57,431 +0300 [http-nio-8080-exec-6] INFO  (ProjectController.java:73) - User qwerty11 is trying to get the projects
+ 2019-05-02 04:13:20,325 +0300 [http-nio-8080-exec-2] INFO  (ProjectController.java:127) - User qwerty11 is trying to add new project
+ 2019-05-02 04:13:20,400 +0300 [http-nio-8080-exec-2] INFO  (ProjectService.java:80) - User qwerty11 added new project
+ 2019-05-02 04:13:20,703 +0300 [http-nio-8080-exec-8] INFO  (ProjectController.java:81) - User qwerty11 is trying to get the project
+ 2019-05-02 04:13:20,704 +0300 [http-nio-8080-exec-8] INFO  (ProjectController.java:86) - User qwerty11 got the project Eventime
+ 2019-05-02 04:13:53,614 +0300 [http-nio-8080-exec-9] INFO  (ProjectController.java:134) - User qwerty11 is trying to add new project lang to project
+ 2019-05-02 04:13:53,626 +0300 [http-nio-8080-exec-9] INFO  (ProjectService.java:126) - Belarusian added to project
+ 2019-05-02 04:13:57,371 +0300 [http-nio-8080-exec-10] INFO  (ProjectController.java:134) - User qwerty11 is trying to add new project lang to project
+ 2019-05-02 04:13:57,378 +0300 [http-nio-8080-exec-10] INFO  (ProjectService.java:126) - German added to project
+ 2019-05-02 04:14:00,234 +0300 [http-nio-8080-exec-3] INFO  (ProjectController.java:134) - User qwerty11 is trying to add new project lang to project
+ 2019-05-02 04:14:00,236 +0300 [http-nio-8080-exec-3] ERROR (ProjectService.java:103) - Project lang exists in this project
+ 2019-05-02 04:14:26,369 +0300 [http-nio-8080-exec-2] INFO  (AuthenticationController.java:89) - Try to authenticate exist user
+ 2019-05-02 04:14:26,374 +0300 [http-nio-8080-exec-2] ERROR (AuthenticationController.java:103) - Incorrect username, or email,  or password
+ 2019-05-02 04:14:29,782 +0300 [http-nio-8080-exec-4] INFO  (AuthenticationController.java:89) - Try to authenticate exist user
+ 2019-05-02 04:14:29,828 +0300 [http-nio-8080-exec-5] INFO  (ProjectController.java:73) - User qwerty11 is trying to get the projects
+ 2019-05-02 04:14:32,227 +0300 [http-nio-8080-exec-9] INFO  (ProjectController.java:81) - User qwerty11 is trying to get the project
+ 2019-05-02 04:14:32,228 +0300 [http-nio-8080-exec-9] INFO  (ProjectController.java:86) - User qwerty11 got the project Eventime
+ 2019-05-02 04:14:43,217 +0300 [http-nio-8080-exec-10] INFO  (ProjectController.java:295) - User qwerty11 is trying to import terms to project
+ 2019-05-02 04:14:43,354 +0300 [http-nio-8080-exec-10] INFO  (ProjectController.java:313) - User qwerty11 imported terms to project
+ 2019-05-02 04:14:45,069 +0300 [http-nio-8080-exec-2] INFO  (ProjectLangController.java:229) - User qwerty11 is trying to filter the project lang
+ 2019-05-02 04:14:45,080 +0300 [http-nio-8080-exec-2] INFO  (ProjectLangService.java:144) - Main filter
+ 2019-05-02 04:14:45,080 +0300 [http-nio-8080-exec-2] INFO  (ProjectLangService.java:104) - Searching term lang
+ 2019-05-02 04:14:45,081 +0300 [http-nio-8080-exec-2] INFO  (ProjectLangService.java:51) - Filter term lang list
+ 2019-05-02 04:14:45,082 +0300 [http-nio-8080-exec-2] INFO  (ProjectLangService.java:202) - Settings flags
+ 2019-05-02 04:14:45,084 +0300 [http-nio-8080-exec-2] INFO  (ProjectLangService.java:70) - Sorting term lang list
+ 2019-05-02 04:14:45,085 +0300 [http-nio-8080-exec-2] INFO  (ProjectLangService.java:202) - Settings flags
+ 2019-05-02 04:14:45,086 +0300 [http-nio-8080-exec-2] INFO  (ProjectLangService.java:202) - Settings flags
+ 2019-05-02 04:15:01,985 +0300 [http-nio-8080-exec-6] INFO  (TermLangController.java:56) - User qwerty11 is trying to update term lang value
+ 2019-05-02 04:15:02,023 +0300 [http-nio-8080-exec-6] INFO  (TermLangController.java:93) - User qwerty11 updated term lang value
+ 2019-05-02 12:34:36,394 +0300 [http-nio-8080-exec-7] INFO  (ProjectController.java:73) - User qwerty11 is trying to get the projects
+ 2019-05-02 12:34:54,125 +0300 [http-nio-8080-exec-9] INFO  (AuthenticationController.java:89) - Try to authenticate exist user
+ 2019-05-02 12:34:54,135 +0300 [http-nio-8080-exec-9] ERROR (AuthenticationController.java:103) - Incorrect username, or email,  or password
+ 2019-05-02 12:34:54,263 +0300 [http-nio-8080-exec-10] INFO  (AuthenticationController.java:89) - Try to authenticate exist user
+ 2019-05-02 12:34:54,271 +0300 [http-nio-8080-exec-10] ERROR (AuthenticationController.java:103) - Incorrect username, or email,  or password
+ 2019-05-02 12:34:54,419 +0300 [http-nio-8080-exec-2] INFO  (AuthenticationController.java:89) - Try to authenticate exist user
+ 2019-05-02 12:34:54,425 +0300 [http-nio-8080-exec-2] ERROR (AuthenticationController.java:103) - Incorrect username, or email,  or password
+ 2019-05-02 12:34:54,582 +0300 [http-nio-8080-exec-1] INFO  (AuthenticationController.java:89) - Try to authenticate exist user
+ 2019-05-02 12:34:54,589 +0300 [http-nio-8080-exec-1] ERROR (AuthenticationController.java:103) - Incorrect username, or email,  or password
+ 2019-05-02 12:34:54,740 +0300 [http-nio-8080-exec-4] INFO  (AuthenticationController.java:89) - Try to authenticate exist user
+ 2019-05-02 12:34:54,747 +0300 [http-nio-8080-exec-4] ERROR (AuthenticationController.java:103) - Incorrect username, or email,  or password
+ 2019-05-02 12:34:54,898 +0300 [http-nio-8080-exec-3] INFO  (AuthenticationController.java:89) - Try to authenticate exist user
+ 2019-05-02 12:34:54,905 +0300 [http-nio-8080-exec-3] ERROR (AuthenticationController.java:103) - Incorrect username, or email,  or password
+ 2019-05-02 12:34:55,044 +0300 [http-nio-8080-exec-5] INFO  (AuthenticationController.java:89) - Try to authenticate exist user
+ 2019-05-02 12:34:55,050 +0300 [http-nio-8080-exec-5] ERROR (AuthenticationController.java:103) - Incorrect username, or email,  or password
+ 2019-05-02 12:34:56,121 +0300 [http-nio-8080-exec-6] INFO  (AuthenticationController.java:89) - Try to authenticate exist user
+ 2019-05-02 12:34:56,128 +0300 [http-nio-8080-exec-6] ERROR (AuthenticationController.java:103) - Incorrect username, or email,  or password
+ 2019-05-02 12:34:56,277 +0300 [http-nio-8080-exec-8] INFO  (AuthenticationController.java:89) - Try to authenticate exist user
+ 2019-05-02 12:34:56,285 +0300 [http-nio-8080-exec-8] ERROR (AuthenticationController.java:103) - Incorrect username, or email,  or password
+ 2019-05-02 12:34:57,115 +0300 [http-nio-8080-exec-7] INFO  (AuthenticationController.java:89) - Try to authenticate exist user
+ 2019-05-02 12:34:57,123 +0300 [http-nio-8080-exec-7] ERROR (AuthenticationController.java:103) - Incorrect username, or email,  or password
+ 2019-05-02 12:34:58,923 +0300 [http-nio-8080-exec-9] INFO  (AuthenticationController.java:89) - Try to authenticate exist user
+ 2019-05-02 12:34:58,929 +0300 [http-nio-8080-exec-9] ERROR (AuthenticationController.java:103) - Incorrect username, or email,  or password
+ 2019-05-02 12:34:59,114 +0300 [http-nio-8080-exec-10] INFO  (AuthenticationController.java:89) - Try to authenticate exist user
+ 2019-05-02 12:34:59,122 +0300 [http-nio-8080-exec-10] ERROR (AuthenticationController.java:103) - Incorrect username, or email,  or password
+ 2019-05-02 12:34:59,269 +0300 [http-nio-8080-exec-2] INFO  (AuthenticationController.java:89) - Try to authenticate exist user
+ 2019-05-02 12:34:59,275 +0300 [http-nio-8080-exec-2] ERROR (AuthenticationController.java:103) - Incorrect username, or email,  or password
+ 2019-05-02 12:34:59,429 +0300 [http-nio-8080-exec-1] INFO  (AuthenticationController.java:89) - Try to authenticate exist user
+ 2019-05-02 12:34:59,436 +0300 [http-nio-8080-exec-1] ERROR (AuthenticationController.java:103) - Incorrect username, or email,  or password
+ 2019-05-02 12:35:16,764 +0300 [http-nio-8080-exec-4] INFO  (AuthenticationController.java:89) - Try to authenticate exist user
+ 2019-05-02 12:35:16,851 +0300 [http-nio-8080-exec-3] INFO  (ProjectController.java:73) - User qwerty is trying to get the projects
+ 2019-05-02 12:36:10,231 +0300 [http-nio-8080-exec-2] INFO  (AuthenticationController.java:53) - Try to register new user
+ 2019-05-02 12:36:10,349 +0300 [http-nio-8080-exec-9] INFO  (ProjectController.java:73) - User qwerty111 is trying to get the projects
+ 2019-05-02 12:36:23,329 +0300 [http-nio-8080-exec-8] INFO  (AuthenticationController.java:89) - Try to authenticate exist user
+ 2019-05-02 12:36:23,376 +0300 [http-nio-8080-exec-7] INFO  (ProjectController.java:73) - User qwerty is trying to get the projects
+ 2019-05-02 12:37:01,752 +0300 [http-nio-8080-exec-7] INFO  (ProjectController.java:81) - User qwerty is trying to get the project
+ 2019-05-02 12:37:01,753 +0300 [http-nio-8080-exec-7] INFO  (ProjectController.java:86) - User qwerty got the project a sdf
+ 2019-05-02 12:37:03,246 +0300 [http-nio-8080-exec-10] INFO  (ProjectLangController.java:229) - User qwerty is trying to filter the project lang
+ 2019-05-02 12:37:03,259 +0300 [http-nio-8080-exec-10] INFO  (ProjectLangService.java:144) - Main filter
+ 2019-05-02 12:37:03,259 +0300 [http-nio-8080-exec-10] INFO  (ProjectLangService.java:104) - Searching term lang
+ 2019-05-02 12:37:03,260 +0300 [http-nio-8080-exec-10] INFO  (ProjectLangService.java:51) - Filter term lang list
+ 2019-05-02 12:37:03,261 +0300 [http-nio-8080-exec-10] INFO  (ProjectLangService.java:202) - Settings flags
+ 2019-05-02 12:37:03,262 +0300 [http-nio-8080-exec-10] INFO  (ProjectLangService.java:70) - Sorting term lang list
+ 2019-05-02 12:37:03,262 +0300 [http-nio-8080-exec-10] INFO  (ProjectLangService.java:202) - Settings flags
+ 2019-05-02 12:37:03,263 +0300 [http-nio-8080-exec-10] INFO  (ProjectLangService.java:202) - Settings flags
+ 2019-05-02 12:37:06,028 +0300 [http-nio-8080-exec-3] INFO  (ProjectController.java:81) - User qwerty is trying to get the project
+ 2019-05-02 12:37:06,028 +0300 [http-nio-8080-exec-3] INFO  (ProjectController.java:86) - User qwerty got the project a sdf
+ 2019-05-02 12:37:07,507 +0300 [http-nio-8080-exec-8] INFO  (TermController.java:115) - User qwerty is trying to filter project terms
+ 2019-05-02 12:37:07,517 +0300 [http-nio-8080-exec-8] INFO  (TermController.java:153) - User qwerty filtered project terms
+ 2019-05-02 12:37:12,696 +0300 [http-nio-8080-exec-10] INFO  (ProjectController.java:198) - User qwerty is trying to add term to project
+ 2019-05-02 12:37:12,762 +0300 [http-nio-8080-exec-10] INFO  (ProjectController.java:211) - User qwerty added term to project
+ 2019-05-02 12:37:12,827 +0300 [http-nio-8080-exec-1] INFO  (TermController.java:115) - User qwerty is trying to filter project terms
+ 2019-05-02 12:37:12,830 +0300 [http-nio-8080-exec-1] INFO  (TermController.java:153) - User qwerty filtered project terms
+ 2019-05-02 12:37:14,258 +0300 [http-nio-8080-exec-5] INFO  (TermController.java:168) - User qwerty is trying to get project term translations
+ 2019-05-02 12:37:14,321 +0300 [http-nio-8080-exec-5] INFO  (TermController.java:179) - User qwerty got project terms
+ 2019-05-02 12:37:17,049 +0300 [http-nio-8080-exec-6] INFO  (TermLangController.java:56) - User qwerty is trying to update term lang value
+ 2019-05-02 12:37:17,204 +0300 [http-nio-8080-exec-6] INFO  (TermLangController.java:93) - User qwerty updated term lang value
+ 2019-05-02 12:37:18,801 +0300 [http-nio-8080-exec-9] INFO  (ProjectController.java:73) - User qwerty is trying to get the projects
+ 2019-05-02 12:37:44,518 +0300 [http-nio-8080-exec-1] INFO  (ProjectController.java:81) - User qwerty is trying to get the project
+ 2019-05-02 12:37:44,519 +0300 [http-nio-8080-exec-1] INFO  (ProjectController.java:86) - User qwerty got the project a sdf
+ 2019-05-02 12:37:46,170 +0300 [http-nio-8080-exec-5] INFO  (ProjectController.java:73) - User qwerty is trying to get the projects
+ 2019-05-02 12:37:47,236 +0300 [http-nio-8080-exec-8] INFO  (ProjectController.java:81) - User qwerty is trying to get the project
+ 2019-05-02 12:37:47,236 +0300 [http-nio-8080-exec-8] INFO  (ProjectController.java:86) - User qwerty got the project a sdf
+ 2019-05-02 12:37:48,674 +0300 [http-nio-8080-exec-9] INFO  (ProjectController.java:73) - User qwerty is trying to get the projects
+ 2019-05-02 12:38:01,798 +0300 [http-nio-8080-exec-3] INFO  (ProjectController.java:81) - User qwerty is trying to get the project
+ 2019-05-02 12:38:01,799 +0300 [http-nio-8080-exec-3] INFO  (ProjectController.java:86) - User qwerty got the project a sdf
+ 2019-05-02 12:38:05,204 +0300 [http-nio-8080-exec-2] INFO  (ProjectLangController.java:229) - User qwerty is trying to filter the project lang
+ 2019-05-02 12:38:05,219 +0300 [http-nio-8080-exec-2] INFO  (ProjectLangService.java:144) - Main filter
+ 2019-05-02 12:38:05,220 +0300 [http-nio-8080-exec-2] INFO  (ProjectLangService.java:104) - Searching term lang
+ 2019-05-02 12:38:05,220 +0300 [http-nio-8080-exec-2] INFO  (ProjectLangService.java:51) - Filter term lang list
+ 2019-05-02 12:38:05,221 +0300 [http-nio-8080-exec-2] INFO  (ProjectLangService.java:202) - Settings flags
+ 2019-05-02 12:38:05,221 +0300 [http-nio-8080-exec-2] INFO  (ProjectLangService.java:70) - Sorting term lang list
+ 2019-05-02 12:38:05,221 +0300 [http-nio-8080-exec-2] INFO  (ProjectLangService.java:202) - Settings flags
+ 2019-05-02 12:38:05,222 +0300 [http-nio-8080-exec-2] INFO  (ProjectLangService.java:202) - Settings flags
+ 2019-05-02 12:38:12,403 +0300 [http-nio-8080-exec-1] INFO  (ProjectController.java:81) - User qwerty is trying to get the project
+ 2019-05-02 12:38:12,404 +0300 [http-nio-8080-exec-1] INFO  (ProjectController.java:86) - User qwerty got the project a sdf
+ 2019-05-02 12:38:14,047 +0300 [http-nio-8080-exec-6] INFO  (ProjectLangController.java:229) - User qwerty is trying to filter the project lang
+ 2019-05-02 12:38:14,060 +0300 [http-nio-8080-exec-6] INFO  (ProjectLangService.java:144) - Main filter
+ 2019-05-02 12:38:14,061 +0300 [http-nio-8080-exec-6] INFO  (ProjectLangService.java:104) - Searching term lang
+ 2019-05-02 12:38:14,061 +0300 [http-nio-8080-exec-6] INFO  (ProjectLangService.java:51) - Filter term lang list
+ 2019-05-02 12:38:14,062 +0300 [http-nio-8080-exec-6] INFO  (ProjectLangService.java:202) - Settings flags
+ 2019-05-02 12:38:14,062 +0300 [http-nio-8080-exec-6] INFO  (ProjectLangService.java:70) - Sorting term lang list
+ 2019-05-02 12:38:14,063 +0300 [http-nio-8080-exec-6] INFO  (ProjectLangService.java:202) - Settings flags
+ 2019-05-02 12:38:14,064 +0300 [http-nio-8080-exec-6] INFO  (ProjectLangService.java:202) - Settings flags
+ 2019-05-02 12:38:18,644 +0300 [http-nio-8080-exec-2] INFO  (ProjectController.java:81) - User qwerty is trying to get the project
+ 2019-05-02 12:38:18,644 +0300 [http-nio-8080-exec-2] INFO  (ProjectController.java:86) - User qwerty got the project a sdf
+ 2019-05-02 12:38:19,521 +0300 [http-nio-8080-exec-9] INFO  (ProjectLangController.java:229) - User qwerty is trying to filter the project lang
+ 2019-05-02 12:38:19,530 +0300 [http-nio-8080-exec-9] INFO  (ProjectLangService.java:144) - Main filter
+ 2019-05-02 12:38:19,531 +0300 [http-nio-8080-exec-9] INFO  (ProjectLangService.java:104) - Searching term lang
+ 2019-05-02 12:38:19,531 +0300 [http-nio-8080-exec-9] INFO  (ProjectLangService.java:51) - Filter term lang list
+ 2019-05-02 12:38:19,531 +0300 [http-nio-8080-exec-9] INFO  (ProjectLangService.java:202) - Settings flags
+ 2019-05-02 12:38:19,531 +0300 [http-nio-8080-exec-9] INFO  (ProjectLangService.java:70) - Sorting term lang list
+ 2019-05-02 12:38:19,532 +0300 [http-nio-8080-exec-9] INFO  (ProjectLangService.java:202) - Settings flags
+ 2019-05-02 12:38:19,532 +0300 [http-nio-8080-exec-9] INFO  (ProjectLangService.java:202) - Settings flags
+ 2019-05-02 12:38:22,977 +0300 [http-nio-8080-exec-5] INFO  (ProjectController.java:81) - User qwerty is trying to get the project
+ 2019-05-02 12:38:22,977 +0300 [http-nio-8080-exec-5] INFO  (ProjectController.java:86) - User qwerty got the project a sdf
+ 2019-05-02 12:38:23,991 +0300 [http-nio-8080-exec-6] INFO  (ProjectLangController.java:229) - User qwerty is trying to filter the project lang
+ 2019-05-02 12:38:24,002 +0300 [http-nio-8080-exec-6] INFO  (ProjectLangService.java:144) - Main filter
+ 2019-05-02 12:38:24,002 +0300 [http-nio-8080-exec-6] INFO  (ProjectLangService.java:104) - Searching term lang
+ 2019-05-02 12:38:24,002 +0300 [http-nio-8080-exec-6] INFO  (ProjectLangService.java:51) - Filter term lang list
+ 2019-05-02 12:38:24,002 +0300 [http-nio-8080-exec-6] INFO  (ProjectLangService.java:202) - Settings flags
+ 2019-05-02 12:38:24,003 +0300 [http-nio-8080-exec-6] INFO  (ProjectLangService.java:70) - Sorting term lang list
+ 2019-05-02 12:38:24,003 +0300 [http-nio-8080-exec-6] INFO  (ProjectLangService.java:202) - Settings flags
+ 2019-05-02 12:38:24,003 +0300 [http-nio-8080-exec-6] INFO  (ProjectLangService.java:202) - Settings flags
+ 2019-05-02 12:38:27,932 +0300 [http-nio-8080-exec-3] INFO  (TermLangController.java:56) - User qwerty is trying to update term lang value
+ 2019-05-02 12:38:27,948 +0300 [http-nio-8080-exec-3] ERROR (TermLangController.java:67) - New value is null
+ 2019-05-02 12:38:27,962 +0300 [http-nio-8080-exec-3] INFO  (TermLangController.java:93) - User qwerty updated term lang value
+ 2019-05-02 12:38:38,660 +0300 [http-nio-8080-exec-6] INFO  (ProjectController.java:73) - User qwerty is trying to get the projects
+ 2019-05-02 12:38:41,608 +0300 [http-nio-8080-exec-10] INFO  (ProjectController.java:338) - User qwerty is trying to filter projects
+ 2019-05-02 12:38:41,692 +0300 [http-nio-8080-exec-4] INFO  (ProjectController.java:338) - User qwerty is trying to filter projects
+ 2019-05-02 12:38:41,700 +0300 [http-nio-8080-exec-1] INFO  (ProjectController.java:338) - User qwerty is trying to filter projects
+ 2019-05-02 12:38:43,685 +0300 [http-nio-8080-exec-7] INFO  (ProjectController.java:338) - User qwerty is trying to filter projects
+ 2019-05-02 12:38:45,091 +0300 [http-nio-8080-exec-8] INFO  (ProjectController.java:371) - User qwerty try to get searched terms
+ 2019-05-02 12:40:14,662 +0300 [http-nio-8080-exec-1] INFO  (AuthenticationController.java:53) - Try to register new user
+ 2019-05-02 12:40:14,703 +0300 [http-nio-8080-exec-5] INFO  (ProjectController.java:73) - User qweqwe is trying to get the projects
+ 2019-05-02 12:40:18,541 +0300 [http-nio-8080-exec-3] INFO  (ProjectController.java:73) - User qweqwe is trying to get the projects
+ 2019-05-02 12:40:27,770 +0300 [http-nio-8080-exec-4] INFO  (ProjectController.java:73) - User qweqwe is trying to get the projects
+ 2019-05-02 12:40:33,896 +0300 [http-nio-8080-exec-8] INFO  (ProjectController.java:127) - User qweqwe is trying to add new project
+ 2019-05-02 12:40:33,923 +0300 [http-nio-8080-exec-8] INFO  (ProjectService.java:80) - User qweqwe added new project
+ 2019-05-02 12:40:34,018 +0300 [http-nio-8080-exec-10] INFO  (ProjectController.java:81) - User qweqwe is trying to get the project
+ 2019-05-02 12:40:34,018 +0300 [http-nio-8080-exec-10] INFO  (ProjectController.java:86) - User qweqwe got the project Eventime
+ 2019-05-02 12:40:38,098 +0300 [http-nio-8080-exec-4] INFO  (TermController.java:115) - User qweqwe is trying to filter project terms
+ 2019-05-02 12:40:38,099 +0300 [http-nio-8080-exec-4] INFO  (TermController.java:153) - User qweqwe filtered project terms
+ 2019-05-02 12:40:40,796 +0300 [http-nio-8080-exec-5] INFO  (ProjectController.java:198) - User qweqwe is trying to add term to project
+ 2019-05-02 12:40:40,810 +0300 [http-nio-8080-exec-5] INFO  (ProjectController.java:211) - User qweqwe added term to project
+ 2019-05-02 12:40:40,865 +0300 [http-nio-8080-exec-6] INFO  (TermController.java:115) - User qweqwe is trying to filter project terms
+ 2019-05-02 12:40:40,867 +0300 [http-nio-8080-exec-6] INFO  (TermController.java:153) - User qweqwe filtered project terms
+ 2019-05-02 12:40:42,173 +0300 [http-nio-8080-exec-8] INFO  (TermController.java:187) - User qweqwe is trying to get project term comments
+ 2019-05-02 12:40:46,790 +0300 [http-nio-8080-exec-9] INFO  (TermController.java:205) - User qweqwe is trying to add project term comment
+ 2019-05-02 12:41:00,841 +0300 [http-nio-8080-exec-4] INFO  (AuthenticationController.java:89) - Try to authenticate exist user
+ 2019-05-02 12:41:01,788 +0300 [http-nio-8080-exec-7] INFO  (ProjectController.java:73) - User qweqwe is trying to get the projects
+ 2019-05-02 12:41:04,765 +0300 [http-nio-8080-exec-2] INFO  (ProjectController.java:81) - User qweqwe is trying to get the project
+ 2019-05-02 12:41:04,766 +0300 [http-nio-8080-exec-2] INFO  (ProjectController.java:86) - User qweqwe got the project Eventime
+ 2019-05-02 12:41:08,090 +0300 [http-nio-8080-exec-9] INFO  (ProjectController.java:81) - User qweqwe is trying to get the project
+ 2019-05-02 12:41:08,090 +0300 [http-nio-8080-exec-9] INFO  (ProjectController.java:86) - User qweqwe got the project Eventime
+ 2019-05-02 12:41:23,335 +0300 [http-nio-8080-exec-6] INFO  (ProjectController.java:169) - User qweqwe is trying to add new contributor to project
+ 2019-05-02 12:41:23,396 +0300 [http-nio-8080-exec-6] INFO  (ProjectService.java:157) - User qwerty added to project
+ 2019-05-02 12:41:29,226 +0300 [http-nio-8080-exec-5] INFO  (AuthenticationController.java:89) - Try to authenticate exist user
+ 2019-05-02 12:41:29,263 +0300 [http-nio-8080-exec-8] INFO  (ProjectController.java:73) - User qwerty is trying to get the projects
+ 2019-05-02 12:41:31,419 +0300 [http-nio-8080-exec-10] INFO  (ProjectController.java:81) - User qwerty is trying to get the project
+ 2019-05-02 12:41:31,419 +0300 [http-nio-8080-exec-10] INFO  (ProjectController.java:86) - User qwerty got the project Eventime
+ 2019-05-02 12:41:32,815 +0300 [http-nio-8080-exec-9] INFO  (TermController.java:115) - User qwerty is trying to filter project terms
+ 2019-05-02 12:41:32,817 +0300 [http-nio-8080-exec-9] INFO  (TermController.java:153) - User qwerty filtered project terms
+ 2019-05-02 12:41:33,992 +0300 [http-nio-8080-exec-1] INFO  (TermController.java:187) - User qwerty is trying to get project term comments
+ 2019-05-02 12:41:37,917 +0300 [http-nio-8080-exec-7] INFO  (TermController.java:205) - User qwerty is trying to add project term comment
+ 2019-05-02 12:41:50,685 +0300 [http-nio-8080-exec-5] INFO  (TermController.java:228) - User qwerty is trying to delete project term comment
+ 2019-05-02 12:42:04,981 +0300 [http-nio-8080-exec-8] INFO  (ProjectController.java:73) - User qwerty is trying to get the projects
+ 2019-05-02 12:43:12,348 +0300 [http-nio-8080-exec-1] INFO  (ProjectController.java:73) - User qwerty is trying to get the projects
+ 2019-05-02 12:43:47,073 +0300 [http-nio-8080-exec-3] INFO  (ProjectController.java:73) - User qwerty is trying to get the projects
+ 2019-05-02 13:44:58,979 +0300 [http-nio-8080-exec-7] INFO  (ProjectController.java:73) - User qwerty is trying to get the projects
+ 2019-05-02 13:51:45,328 +0300 [http-nio-8080-exec-5] INFO  (AuthenticationController.java:53) - Try to register new user
+ 2019-05-02 13:51:45,535 +0300 [http-nio-8080-exec-6] INFO  (ProjectController.java:73) - User qwwer is trying to get the projects
+ 2019-05-02 13:52:03,256 +0300 [http-nio-8080-exec-1] INFO  (ProjectController.java:73) - User qwwer is trying to get the projects
+ 2019-05-02 13:52:09,904 +0300 [http-nio-8080-exec-5] INFO  (ProjectController.java:73) - User qwwer is trying to get the projects
+ 2019-05-02 13:52:11,280 +0300 [http-nio-8080-exec-7] INFO  (ProjectController.java:73) - User qwwer is trying to get the projects
+ 2019-05-02 13:52:18,390 +0300 [http-nio-8080-exec-4] INFO  (ProjectController.java:73) - User qwwer is trying to get the projects
+ 2019-05-02 13:52:40,942 +0300 [http-nio-8080-exec-9] INFO  (ProjectController.java:73) - User qwwer is trying to get the projects
+ 2019-05-02 13:55:24,370 +0300 [http-nio-8080-exec-3] INFO  (ProjectController.java:73) - User qwwer is trying to get the projects
+ 2019-05-02 13:56:47,421 +0300 [http-nio-8080-exec-10] INFO  (ProjectController.java:127) - User qwwer is trying to add new project
+ 2019-05-02 13:56:47,486 +0300 [http-nio-8080-exec-10] INFO  (ProjectService.java:80) - User qwwer added new project
+ 2019-05-02 13:56:47,670 +0300 [http-nio-8080-exec-4] INFO  (ProjectController.java:81) - User qwwer is trying to get the project
+ 2019-05-02 13:56:47,671 +0300 [http-nio-8080-exec-4] INFO  (ProjectController.java:86) - User qwwer got the project мой проект
+ 2019-05-02 13:56:50,282 +0300 [http-nio-8080-exec-8] INFO  (ProjectLangController.java:229) - User qwwer is trying to filter the project lang
+ 2019-05-02 13:56:50,291 +0300 [http-nio-8080-exec-8] INFO  (ProjectLangService.java:144) - Main filter
+ 2019-05-02 13:56:50,291 +0300 [http-nio-8080-exec-8] INFO  (ProjectLangService.java:104) - Searching term lang
+ 2019-05-02 13:56:50,293 +0300 [http-nio-8080-exec-8] INFO  (ProjectLangService.java:51) - Filter term lang list
+ 2019-05-02 13:56:50,293 +0300 [http-nio-8080-exec-8] INFO  (ProjectLangService.java:202) - Settings flags
+ 2019-05-02 13:56:50,294 +0300 [http-nio-8080-exec-8] INFO  (ProjectLangService.java:70) - Sorting term lang list
+ 2019-05-02 13:56:50,294 +0300 [http-nio-8080-exec-8] INFO  (ProjectLangService.java:202) - Settings flags
+ 2019-05-02 13:56:52,516 +0300 [http-nio-8080-exec-7] INFO  (ProjectController.java:81) - User qwwer is trying to get the project
+ 2019-05-02 13:56:52,516 +0300 [http-nio-8080-exec-7] INFO  (ProjectController.java:86) - User qwwer got the project мой проект
+ 2019-05-02 13:57:20,314 +0300 [http-nio-8080-exec-4] INFO  (TermController.java:115) - User qwwer is trying to filter project terms
+ 2019-05-02 13:57:20,317 +0300 [http-nio-8080-exec-4] INFO  (TermController.java:153) - User qwwer filtered project terms
+ 2019-05-02 13:58:00,706 +0300 [http-nio-8080-exec-5] INFO  (ProjectController.java:198) - User qwwer is trying to add term to project
+ 2019-05-02 13:58:00,777 +0300 [http-nio-8080-exec-5] INFO  (ProjectController.java:211) - User qwwer added term to project
+ 2019-05-02 13:58:00,884 +0300 [http-nio-8080-exec-9] INFO  (TermController.java:115) - User qwwer is trying to filter project terms
+ 2019-05-02 13:58:00,889 +0300 [http-nio-8080-exec-9] INFO  (TermController.java:153) - User qwwer filtered project terms
+ 2019-05-02 13:58:06,142 +0300 [http-nio-8080-exec-1] INFO  (TermController.java:115) - User qwwer is trying to filter project terms
+ 2019-05-02 13:58:06,144 +0300 [http-nio-8080-exec-1] INFO  (TermController.java:153) - User qwwer filtered project terms
+ 2019-05-02 13:58:06,803 +0300 [http-nio-8080-exec-3] INFO  (TermController.java:115) - User qwwer is trying to filter project terms
+ 2019-05-02 13:58:06,805 +0300 [http-nio-8080-exec-3] INFO  (TermController.java:153) - User qwwer filtered project terms
+ 2019-05-02 13:58:09,955 +0300 [http-nio-8080-exec-4] INFO  (TermController.java:115) - User qwwer is trying to filter project terms
+ 2019-05-02 13:58:09,957 +0300 [http-nio-8080-exec-4] INFO  (TermController.java:153) - User qwwer filtered project terms
+ 2019-05-02 13:58:10,318 +0300 [http-nio-8080-exec-6] INFO  (TermController.java:115) - User qwwer is trying to filter project terms
+ 2019-05-02 13:58:10,319 +0300 [http-nio-8080-exec-6] INFO  (TermController.java:153) - User qwwer filtered project terms
+ 2019-05-02 13:58:10,977 +0300 [http-nio-8080-exec-8] INFO  (TermController.java:115) - User qwwer is trying to filter project terms
+ 2019-05-02 13:58:10,978 +0300 [http-nio-8080-exec-8] INFO  (TermController.java:153) - User qwwer filtered project terms
+ 2019-05-02 13:58:11,691 +0300 [http-nio-8080-exec-5] INFO  (TermController.java:115) - User qwwer is trying to filter project terms
+ 2019-05-02 13:58:11,693 +0300 [http-nio-8080-exec-5] INFO  (TermController.java:153) - User qwwer filtered project terms
+ 2019-05-02 13:58:13,460 +0300 [http-nio-8080-exec-2] INFO  (TermController.java:187) - User qwwer is trying to get project term comments
+ 2019-05-02 13:58:20,493 +0300 [http-nio-8080-exec-10] INFO  (TermController.java:205) - User qwwer is trying to add project term comment
+ 2019-05-02 13:58:25,280 +0300 [http-nio-8080-exec-10] INFO  (TermController.java:115) - User qwwer is trying to filter project terms
+ 2019-05-02 13:58:25,281 +0300 [http-nio-8080-exec-10] INFO  (TermController.java:153) - User qwwer filtered project terms
+ 2019-05-02 13:58:31,168 +0300 [http-nio-8080-exec-4] INFO  (ProjectController.java:230) - User qwwer is trying to delete term from project
+ 2019-05-02 13:58:31,235 +0300 [http-nio-8080-exec-4] INFO  (ProjectController.java:233) - Term has been deleted from project мой проект
+ 2019-05-02 13:58:31,279 +0300 [http-nio-8080-exec-6] INFO  (TermController.java:115) - User qwwer is trying to filter project terms
+ 2019-05-02 13:58:31,279 +0300 [http-nio-8080-exec-6] INFO  (TermController.java:153) - User qwwer filtered project terms
+ 2019-05-02 13:59:03,855 +0300 [http-nio-8080-exec-3] INFO  (AuthenticationController.java:89) - Try to authenticate exist user
+ 2019-05-02 13:59:03,905 +0300 [http-nio-8080-exec-4] INFO  (ProjectController.java:73) - User qwerty is trying to get the projects
+ 2019-05-02 14:00:46,312 +0300 [http-nio-8080-exec-10] INFO  (ProjectController.java:338) - User qwerty is trying to filter projects
+ 2019-05-02 14:01:03,352 +0300 [http-nio-8080-exec-6] INFO  (ProjectController.java:338) - User qwerty is trying to filter projects
+ 2019-05-02 14:01:24,403 +0300 [http-nio-8080-exec-8] INFO  (ProjectLangController.java:229) - User qwerty is trying to filter the project lang
+ 2019-05-02 14:01:24,414 +0300 [http-nio-8080-exec-8] INFO  (ProjectLangService.java:144) - Main filter
+ 2019-05-02 14:01:24,414 +0300 [http-nio-8080-exec-8] INFO  (ProjectLangService.java:104) - Searching term lang
+ 2019-05-02 14:01:24,414 +0300 [http-nio-8080-exec-8] INFO  (ProjectLangService.java:51) - Filter term lang list
+ 2019-05-02 14:01:24,415 +0300 [http-nio-8080-exec-8] INFO  (ProjectLangService.java:202) - Settings flags
+ 2019-05-02 14:01:24,417 +0300 [http-nio-8080-exec-8] INFO  (ProjectLangService.java:70) - Sorting term lang list
+ 2019-05-02 14:01:24,417 +0300 [http-nio-8080-exec-8] INFO  (ProjectLangService.java:202) - Settings flags
+ 2019-05-02 14:01:24,417 +0300 [http-nio-8080-exec-8] INFO  (ProjectLangService.java:202) - Settings flags
+ 2019-05-02 14:01:33,185 +0300 [http-nio-8080-exec-2] INFO  (ProjectLangController.java:229) - User qwerty is trying to filter the project lang
+ 2019-05-02 14:01:33,196 +0300 [http-nio-8080-exec-2] INFO  (ProjectLangService.java:144) - Main filter
+ 2019-05-02 14:01:33,196 +0300 [http-nio-8080-exec-2] INFO  (ProjectLangService.java:104) - Searching term lang
+ 2019-05-02 14:01:33,197 +0300 [http-nio-8080-exec-2] INFO  (ProjectLangService.java:51) - Filter term lang list
+ 2019-05-02 14:01:33,198 +0300 [http-nio-8080-exec-2] INFO  (ProjectLangService.java:202) - Settings flags
+ 2019-05-02 14:01:33,198 +0300 [http-nio-8080-exec-2] INFO  (ProjectLangService.java:70) - Sorting term lang list
+ 2019-05-02 14:01:33,198 +0300 [http-nio-8080-exec-2] INFO  (ProjectLangService.java:202) - Settings flags
+ 2019-05-02 14:01:33,198 +0300 [http-nio-8080-exec-2] INFO  (ProjectLangService.java:202) - Settings flags
+ 
